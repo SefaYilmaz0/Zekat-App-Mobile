@@ -22,7 +22,6 @@ class SummaryScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.share_rounded),
             color: Theme.of(context).primaryColor,
-            onScaleUpdate: (details) {}, // Dummy
             onPressed: () {
               // Share logic
             },

@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../core/domain/enums.dart';
-import '../../../core/providers/app_state_provider.dart';
-import '../../assets/domain/asset_model.dart';
-import '../../calculator/presentation/calculator_provider.dart';
+import '../../../../core/domain/enums.dart';
+import '../../../../core/providers/app_state_provider.dart';
+import '../../domain/asset_model.dart';
+import '../../../calculator/presentation/calculator_provider.dart';
 
 class AddAssetDialog extends ConsumerStatefulWidget {
   const AddAssetDialog({super.key});
