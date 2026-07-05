@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../asset_provider.dart';
+import 'asset_provider.dart';
 import 'widgets/add_asset_dialog.dart';
 
 class AssetsScreen extends ConsumerWidget {
