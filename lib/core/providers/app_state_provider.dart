@@ -46,6 +46,17 @@ class AppStateNotifier extends StateNotifier<AppState> {
     box.put('current', state);
   }
 
+  void setCurrency(AppCurrency currency) {
+    state = AppState(
+      sect: state.sect,
+      currency: currency,
+      isDark: state.isDark,
+      language: state.language,
+      onboardingComplete: state.onboardingComplete,
+    );
+    box.put('current', state);
+  }
+
   void toggleTheme() {
     state = AppState(
       sect: state.sect,
@@ -64,6 +75,17 @@ class AppStateNotifier extends StateNotifier<AppState> {
       isDark: state.isDark,
       language: state.language,
       onboardingComplete: true,
+    );
+    box.put('current', state);
+  }
+
+  void resetApp() {
+    state = AppState(
+      sect: Sect.hanefi,
+      currency: AppCurrency.tryCurrency,
+      isDark: false,
+      language: Language.tr,
+      onboardingComplete: false,
     );
     box.put('current', state);
   }

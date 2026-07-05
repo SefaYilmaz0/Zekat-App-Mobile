@@ -17,6 +17,7 @@ import 'features/summary/presentation/summary_screen.dart';
 import 'features/assets/presentation/assets_screen.dart';
 import 'features/history/presentation/history_screen.dart';
 import 'features/guide/presentation/guide_screen.dart';
+import 'features/settings/presentation/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,10 +98,7 @@ class ZekatApp extends ConsumerWidget {
             ),
             GoRoute(
               path: '/settings',
-              builder: (context, state) => Scaffold(
-                appBar: AppBar(title: const Text('Ayarlar')),
-                body: const Center(child: Text('Ayarlar sayfası yapım aşamasındadır.')),
-              ),
+              builder: (context, state) => const SettingsScreen(),
             ),
           ],
         ),
