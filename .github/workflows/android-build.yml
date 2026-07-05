@@ -33,8 +33,17 @@ jobs:
     - name: Build APK
       run: flutter build apk --release
 
+    - name: Build AAB (App Bundle)
+      run: flutter build appbundle --release
+
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: Zekat-Hesaplama-Araci-APK
         path: build/app/outputs/flutter-apk/app-release.apk
+
+    - name: Upload AAB artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Zekat-Hesaplama-Araci-AAB
+        path: build/app/outputs/bundle/release/app-release.aab
