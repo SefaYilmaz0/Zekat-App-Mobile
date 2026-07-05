@@ -97,7 +97,10 @@ class ZekatApp extends ConsumerWidget {
             ),
             GoRoute(
               path: '/settings',
-              builder: (context, state) => const Scaffold(body: Center(child: Text('Settings (WIP)'))),
+              builder: (context, state) => Scaffold(
+                appBar: AppBar(title: const Text('Ayarlar')),
+                body: const Center(child: Text('Ayarlar sayfası yapım aşamasındadır.')),
+              ),
             ),
           ],
         ),
