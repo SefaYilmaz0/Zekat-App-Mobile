@@ -1,45 +1,116 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'core/database/local_db_service.dart';
+import 'package:go_router/go_router.dart';
+
+import 'core/theme.dart';
+import 'core/domain/enums.dart';
+import 'core/domain/app_state.dart';
+import 'core/providers/app_state_provider.dart';
+import 'core/presentation/main_layout.dart';
 import 'features/assets/domain/asset_model.dart';
-import 'core/presentation/main_screen.dart';
+import 'features/history/domain/history_model.dart';
+
+import 'features/onboarding/presentation/welcome_screen.dart';
+import 'features/onboarding/presentation/sect_selection_screen.dart';
+import 'features/summary/presentation/summary_screen.dart';
+import 'features/assets/presentation/assets_screen.dart';
+import 'features/history/presentation/history_screen.dart';
+import 'features/guide/presentation/guide_screen.dart';
 
 void main() async {
-  // Flutter binding başlatılması
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Hive başlatılması
   await Hive.initFlutter();
-  
-  // Hive adaptörlerinin kaydedilmesi (Bu dosya build_runner ile oluştu)
-  Hive.registerAdapter(AssetTypeAdapter());
-  Hive.registerAdapter(AssetModelAdapter());
-  
-  // Kutuların açılması
-  await LocalDbService.init();
 
-  runApp(
-    // Riverpod State Yönetimi için ProviderScope sarıcısı
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  Hive.registerAdapter(AssetCategoryAdapter());
+  Hive.registerAdapter(AssetModelAdapter());
+  Hive.registerAdapter(LanguageAdapter());
+  Hive.registerAdapter(SectAdapter());
+  Hive.registerAdapter(AppCurrencyAdapter());
+  Hive.registerAdapter(AppStateAdapter());
+  Hive.registerAdapter(HistoryModelAdapter());
+
+  await Hive.openBox<AppState>('appState');
+  await Hive.openBox<AssetModel>('assets');
+  await Hive.openBox<HistoryModel>('history');
+
+  runApp(const ProviderScope(child: ZekatApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
+class ZekatApp extends ConsumerWidget {
+  const ZekatApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Zekat App',
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appState = ref.watch(appStateProvider);
+
+    final goRouter = GoRouter(
+      navigatorKey: _rootNavigatorKey,
+      initialLocation: appState.onboardingComplete ? '/summary' : '/',
+      redirect: (context, state) {
+        final isOnboardingRoute = state.matchedLocation == '/' || state.matchedLocation == '/sect-select';
+        
+        if (appState.onboardingComplete && isOnboardingRoute) {
+          return '/summary';
+        }
+        
+        if (!appState.onboardingComplete && !isOnboardingRoute) {
+          return '/';
+        }
+        
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const WelcomeScreen(),
+        ),
+        GoRoute(
+          path: '/sect-select',
+          builder: (context, state) => const SectSelectionScreen(),
+        ),
+        ShellRoute(
+          navigatorKey: _shellNavigatorKey,
+          builder: (context, state, child) {
+            return MainLayout(child: child);
+          },
+          routes: [
+            GoRoute(
+              path: '/summary',
+              builder: (context, state) => const SummaryScreen(),
+            ),
+            GoRoute(
+              path: '/assets',
+              builder: (context, state) => const AssetsScreen(),
+            ),
+            GoRoute(
+              path: '/guide',
+              builder: (context, state) => const GuideScreen(),
+            ),
+            GoRoute(
+              path: '/history',
+              builder: (context, state) => const HistoryScreen(),
+            ),
+            GoRoute(
+              path: '/settings',
+              builder: (context, state) => const Scaffold(body: Center(child: Text('Settings (WIP)'))),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    return MaterialApp.router(
+      title: 'Zekat Hesaplama Aracı',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: appState.isDark ? ThemeMode.dark : ThemeMode.light,
+      routerConfig: goRouter,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-      ),
-      home: const MainScreen(),
     );
   }
 }

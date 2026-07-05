@@ -3,15 +3,19 @@ import 'package:hive/hive.dart';
 part 'asset_model.g.dart';
 
 @HiveType(typeId: 0)
-enum AssetType {
+enum AssetCategory {
   @HiveField(0)
-  cash,
-  @HiveField(1)
   gold,
+  @HiveField(1)
+  cash,
   @HiveField(2)
-  silver,
+  livestock,
   @HiveField(3)
-  currency,
+  agriculture,
+  @HiveField(4)
+  receivable,
+  @HiveField(5)
+  debt,
 }
 
 @HiveType(typeId: 1)
@@ -23,15 +27,27 @@ class AssetModel extends HiveObject {
   String name;
 
   @HiveField(2)
-  AssetType type;
+  AssetCategory category;
 
   @HiveField(3)
-  double amount;
+  double value;
+
+  @HiveField(4)
+  double? previousValue;
+
+  @HiveField(5)
+  String? description;
+
+  @HiveField(6)
+  Map<dynamic, dynamic>? details;
 
   AssetModel({
     required this.id,
     required this.name,
-    required this.type,
-    required this.amount,
+    required this.category,
+    required this.value,
+    this.previousValue,
+    this.description,
+    this.details,
   });
 }

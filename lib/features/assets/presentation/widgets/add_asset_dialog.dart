@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/asset_model.dart';
-import '../asset_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../../core/domain/enums.dart';
+import '../../../core/providers/app_state_provider.dart';
+import '../../assets/domain/asset_model.dart';
+import '../../calculator/presentation/calculator_provider.dart';
 
 class AddAssetDialog extends ConsumerStatefulWidget {
   const AddAssetDialog({super.key});
@@ -11,40 +16,86 @@ class AddAssetDialog extends ConsumerStatefulWidget {
 }
 
 class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _amountController = TextEditingController();
-  AssetType _selectedType = AssetType.cash;
+  final _valueController = TextEditingController();
+  AssetCategory _selectedCategory = AssetCategory.cash;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _valueController.dispose();
+    super.dispose();
+  }
+
+  void _saveAsset() {
+    if (_formKey.currentState!.validate()) {
+      final value = double.tryParse(_valueController.text) ?? 0.0;
+      
+      final asset = AssetModel(
+        id: const Uuid().v4(),
+        name: _nameController.text,
+        category: _selectedCategory,
+        value: value,
+      );
+
+      final box = Hive.box<AssetModel>('assets');
+      box.put(asset.id, asset);
+
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final appState = ref.watch(appStateProvider);
+    final isTr = appState.language == Language.tr;
+
     return AlertDialog(
-      title: const Text('Yeni Varlık Ekle'),
-      content: SingleChildScrollView(
+      title: Text(isTr ? 'Varlık Ekle' : 'Add Asset'),
+      content: Form(
+        key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Varlık Adı (örn: Banka)'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _amountController,
-              decoration: const InputDecoration(labelText: 'Miktar (TL, Gram vb.)'),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<AssetType>(
-              value: _selectedType,
-              decoration: const InputDecoration(labelText: 'Tür'),
-              items: AssetType.values.map((type) {
+            DropdownButtonFormField<AssetCategory>(
+              value: _selectedCategory,
+              decoration: InputDecoration(
+                labelText: isTr ? 'Kategori' : 'Category',
+                border: const OutlineInputBorder(),
+              ),
+              items: AssetCategory.values.map((cat) {
+                String catName = cat.name.toUpperCase();
                 return DropdownMenuItem(
-                  value: type,
-                  child: Text(type.name.toUpperCase()),
+                  value: cat,
+                  child: Text(catName),
                 );
               }).toList(),
               onChanged: (val) {
-                if (val != null) setState(() => _selectedType = val);
+                if (val != null) setState(() => _selectedCategory = val);
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: isTr ? 'Varlık Adı' : 'Asset Name',
+                border: const OutlineInputBorder(),
+              ),
+              validator: (value) => value == null || value.isEmpty ? (isTr ? 'Lütfen bir ad girin' : 'Please enter a name') : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _valueController,
+              decoration: InputDecoration(
+                labelText: isTr ? 'Değer (TRY)' : 'Value (TRY)',
+                border: const OutlineInputBorder(),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) {
+                if (value == null || value.isEmpty) return isTr ? 'Lütfen bir değer girin' : 'Please enter a value';
+                if (double.tryParse(value) == null) return isTr ? 'Geçerli bir sayı girin' : 'Please enter a valid number';
+                return null;
               },
             ),
           ],
@@ -52,25 +103,16 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('İptal'),
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(isTr ? 'İptal' : 'Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
-            final name = _nameController.text;
-            final amount = double.tryParse(_amountController.text) ?? 0.0;
-            if (name.isNotEmpty && amount > 0) {
-              final newAsset = AssetModel(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                name: name,
-                type: _selectedType,
-                amount: amount,
-              );
-              ref.read(assetsProvider.notifier).addAsset(newAsset);
-              Navigator.pop(context);
-            }
-          },
-          child: const Text('Ekle'),
+          onPressed: _saveAsset,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).primaryColor,
+            foregroundColor: Colors.white,
+          ),
+          child: Text(isTr ? 'Kaydet' : 'Save'),
         ),
       ],
     );

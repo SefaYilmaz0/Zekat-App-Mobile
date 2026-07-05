@@ -19,23 +19,32 @@ class AssetModelAdapter extends TypeAdapter<AssetModel> {
     return AssetModel(
       id: fields[0] as String,
       name: fields[1] as String,
-      type: fields[2] as AssetType,
-      amount: fields[3] as double,
+      category: fields[2] as AssetCategory,
+      value: fields[3] as double,
+      previousValue: fields[4] as double?,
+      description: fields[5] as String?,
+      details: (fields[6] as Map?)?.cast<dynamic, dynamic>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, AssetModel obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.type)
+      ..write(obj.category)
       ..writeByte(3)
-      ..write(obj.amount);
+      ..write(obj.value)
+      ..writeByte(4)
+      ..write(obj.previousValue)
+      ..writeByte(5)
+      ..write(obj.description)
+      ..writeByte(6)
+      ..write(obj.details);
   }
 
   @override
@@ -49,40 +58,50 @@ class AssetModelAdapter extends TypeAdapter<AssetModel> {
           typeId == other.typeId;
 }
 
-class AssetTypeAdapter extends TypeAdapter<AssetType> {
+class AssetCategoryAdapter extends TypeAdapter<AssetCategory> {
   @override
   final int typeId = 0;
 
   @override
-  AssetType read(BinaryReader reader) {
+  AssetCategory read(BinaryReader reader) {
     switch (reader.readByte()) {
       case 0:
-        return AssetType.cash;
+        return AssetCategory.gold;
       case 1:
-        return AssetType.gold;
+        return AssetCategory.cash;
       case 2:
-        return AssetType.silver;
+        return AssetCategory.livestock;
       case 3:
-        return AssetType.currency;
+        return AssetCategory.agriculture;
+      case 4:
+        return AssetCategory.receivable;
+      case 5:
+        return AssetCategory.debt;
       default:
-        return AssetType.cash;
+        return AssetCategory.gold;
     }
   }
 
   @override
-  void write(BinaryWriter writer, AssetType obj) {
+  void write(BinaryWriter writer, AssetCategory obj) {
     switch (obj) {
-      case AssetType.cash:
+      case AssetCategory.gold:
         writer.writeByte(0);
         break;
-      case AssetType.gold:
+      case AssetCategory.cash:
         writer.writeByte(1);
         break;
-      case AssetType.silver:
+      case AssetCategory.livestock:
         writer.writeByte(2);
         break;
-      case AssetType.currency:
+      case AssetCategory.agriculture:
         writer.writeByte(3);
+        break;
+      case AssetCategory.receivable:
+        writer.writeByte(4);
+        break;
+      case AssetCategory.debt:
+        writer.writeByte(5);
         break;
     }
   }
@@ -93,7 +112,7 @@ class AssetTypeAdapter extends TypeAdapter<AssetType> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AssetTypeAdapter &&
+      other is AssetCategoryAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
