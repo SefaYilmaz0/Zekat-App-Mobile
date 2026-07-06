@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/domain/enums.dart';
+import '../../../core/domain/app_state.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../history/domain/history_model.dart';
