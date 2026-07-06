@@ -8,7 +8,6 @@ import '../../assets/domain/asset_model.dart';
 import '../../history/domain/history_model.dart';
 import '../../exchange_rates/data/exchange_rate_repository.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
-import '../../../core/presentation/widgets/admob_banner.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -229,9 +228,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Text(isTr ? 'İletişim' : 'Contact Us', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-          const Center(child: AdMobBanner()),
+          )
         ],
       ),
     );
