@@ -3,201 +3,271 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/domain/enums.dart';
-import '../../../core/domain/app_state.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../history/domain/history_model.dart';
+import '../../exchange_rates/data/exchange_rate_repository.dart';
+import '../../exchange_rates/domain/exchange_rate_model.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  List<ExchangeRateModel> _rates = [];
+  bool _isLoadingRates = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRates();
+  }
+
+  Future<void> _fetchRates() async {
+    setState(() => _isLoadingRates = true);
+    final repo = ExchangeRateRepository();
+    final rates = await repo.getRates();
+    setState(() {
+      _rates = rates;
+      _isLoadingRates = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
+    final isTr = appState.language == Language.tr;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Ayarlar'),
+        backgroundColor: const Color(0xFFF8F9FA),
+        elevation: 0,
+        title: Text(isTr ? 'Ayarlar' : 'Settings', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
         centerTitle: true,
       ),
       body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
         children: [
-          // Görünüm (Tema)
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-            child: Text(
-              'Görünüm',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+          // Privacy Banner
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.blue.shade100),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.save_rounded, color: Colors.blue.shade700),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(isTr ? 'Verileriniz Cihazınızda' : 'Your Data is on Your Device', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+                      const SizedBox(height: 4),
+                      Text(
+                        isTr 
+                          ? 'Uygulama herhangi bir sunucuya veri göndermez. Tüm hesaplamalarınız ve tercihleriniz bu cihazın hafızasında güvenle saklanır.'
+                          : 'The app does not send data to any server. All calculations and preferences are securely stored in this device\'s memory.',
+                        style: TextStyle(color: Colors.blue.shade800, fontSize: 12, height: 1.5),
+                      ),
+                    ],
+                  ),
+                )
+              ],
             ),
           ),
-          SwitchListTile(
-            title: const Text('Karanlık Mod (Dark Mode)'),
-            subtitle: const Text('Göz yorgunluğunu azaltır.'),
-            value: appState.isDark,
-            activeColor: Theme.of(context).primaryColor,
-            onChanged: (val) {
-              notifier.toggleTheme();
-            },
-          ),
-          
-          const Divider(),
+          const SizedBox(height: 24),
 
-          // Tercihler
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Tercihler',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+          // Market Data
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(isTr ? 'PİYASA VERİSİ' : 'MARKET DATA', style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              Row(
+                children: [
+                  Text(isTr ? 'Son: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}' : 'Last: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    color: Colors.grey.shade500,
+                    onPressed: _fetchRates,
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.only(left: 4),
+                  )
+                ],
+              )
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+            ),
+            child: _isLoadingRates 
+              ? const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()))
+              : Column(
+                  children: [
+                    _buildRateRow('GOLD', isTr ? 'Gram Altın (24K)' : 'Gold (24K)', Icons.grid_goldenratio_rounded),
+                    const Divider(height: 1),
+                    _buildRateRow('USD', 'Amerikan Doları', Icons.attach_money_rounded),
+                    const Divider(height: 1),
+                    _buildRateRow('EUR', 'Euro', Icons.euro_rounded),
+                  ],
+                ),
+          ),
+          const SizedBox(height: 24),
+
+          // Preferences
+          Text(isTr ? 'TERCİHLER' : 'PREFERENCES', style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text(isTr ? 'Dil' : 'Language'),
+                  trailing: DropdownButton<Language>(
+                    value: appState.language,
+                    underline: const SizedBox(),
+                    items: const [
+                      DropdownMenuItem(value: Language.tr, child: Text('Türkçe')),
+                      DropdownMenuItem(value: Language.en, child: Text('English')),
+                    ],
+                    onChanged: (val) { if(val != null) notifier.setLanguage(val); },
+                  ),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  title: Text(isTr ? 'Karanlık Mod' : 'Dark Mode'),
+                  value: appState.isDark,
+                  activeColor: const Color(0xFFF3A712),
+                  onChanged: (val) => notifier.toggleTheme(),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(isTr ? 'Mezhep' : 'Sect'),
+                  trailing: DropdownButton<Sect>(
+                    value: appState.sect,
+                    underline: const SizedBox(),
+                    items: Sect.values.map((s) => DropdownMenuItem(value: s, child: Text(s.name.toUpperCase()))).toList(),
+                    onChanged: (val) { if(val != null) notifier.setSect(val); },
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(isTr ? 'Para Birimi' : 'Currency'),
+                  trailing: DropdownButton<AppCurrency>(
+                    value: appState.currency,
+                    underline: const SizedBox(),
+                    items: AppCurrency.values.map((c) => DropdownMenuItem(value: c, child: Text(c.name.toUpperCase().replaceAll('CURRENCY', '')))).toList(),
+                    onChanged: (val) { if(val != null) notifier.setCurrency(val); },
+                  ),
+                ),
+              ],
             ),
           ),
-          ListTile(
-            title: const Text('Mezhep'),
-            subtitle: Text(_getSectName(appState.sect)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showSectDialog(context, appState, notifier),
-          ),
-          ListTile(
-            title: const Text('Para Birimi'),
-            subtitle: Text(appState.currency.name.toUpperCase().replaceAll('CURRENCY', '')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showCurrencyDialog(context, appState, notifier),
-          ),
-          ListTile(
-            title: const Text('Dil'),
-            subtitle: Text(appState.language == Language.tr ? 'Türkçe' : 'English'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showLanguageDialog(context, appState, notifier),
-          ),
+          const SizedBox(height: 24),
 
-          const Divider(),
-
-          // Veri Yönetimi
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Veri Yönetimi',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+          // App & Data Management
+          Text(isTr ? 'UYGULAMA VE VERİ YÖNETİMİ' : 'APP & DATA MANAGEMENT', style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.add_to_home_screen_rounded),
+                  title: Text(isTr ? 'Ana Ekrana Ekle' : 'Add to Home Screen'),
+                  onTap: () {},
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.delete_forever_rounded, color: Colors.red),
+                  title: Text(isTr ? 'Tüm Verileri Sıfırla' : 'Reset All Data', style: const TextStyle(color: Colors.red)),
+                  onTap: () => _showResetDialog(context, ref, isTr),
+                ),
+              ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.delete_forever, color: Colors.red),
-            title: const Text('Tüm Verileri Sıfırla', style: TextStyle(color: Colors.red)),
-            subtitle: const Text('Varlıklarınız ve geçmiş kayıtlarınız silinir.'),
-            onTap: () => _showResetDialog(context, ref),
-          ),
+          const SizedBox(height: 40),
+
+          // Footer
+          Center(
+            child: Column(
+              children: [
+                const Icon(Icons.calculate_rounded, color: Color(0xFFF3A712), size: 48),
+                const SizedBox(height: 16),
+                Text('ZekatApp Versiyon 1.0.1 (Offline)', style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(isTr ? 'Gizlilik Politikası' : 'Privacy Policy', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
+                    const SizedBox(width: 16),
+                    Text(isTr ? 'Kullanım Koşulları' : 'Terms of Use', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(isTr ? 'İletişim' : 'Contact Us', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
+              ],
+            ),
+          )
         ],
       ),
     );
   }
 
-  String _getSectName(Sect sect) {
-    switch (sect) {
-      case Sect.hanefi: return 'Hanefi';
-      case Sect.safi: return 'Şafii';
-      case Sect.maliki: return 'Maliki';
-      case Sect.hanbeli: return 'Hanbeli';
-    }
-  }
-
-  void _showSectDialog(BuildContext context, AppState state, AppStateNotifier notifier) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Mezhep Seçimi'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: Sect.values.map((sect) {
-              return RadioListTile<Sect>(
-                title: Text(_getSectName(sect)),
-                value: sect,
-                groupValue: state.sect,
-                activeColor: Theme.of(context).primaryColor,
-                onChanged: (val) {
-                  if (val != null) {
-                    notifier.setSect(val);
-                    Navigator.pop(context);
-                  }
-                },
-              );
-            }).toList(),
-          ),
-        );
-      },
+  Widget _buildRateRow(String code, String name, IconData icon) {
+    final rate = _rates.firstWhere((r) => r.currencyCode == code, orElse: () => ExchangeRateModel(currencyCode: code, currencyName: name, buyingPrice: 0, sellingPrice: 0, lastUpdate: DateTime.now()));
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
+        child: Icon(icon, color: Colors.grey.shade600, size: 20),
+      ),
+      title: Text(name, style: TextStyle(color: Colors.grey.shade600)),
+      trailing: Text('₺${rate.buyingPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
     );
   }
 
-  void _showCurrencyDialog(BuildContext context, AppState state, AppStateNotifier notifier) {
+  void _showResetDialog(BuildContext context, WidgetRef ref, bool isTr) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Para Birimi'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: AppCurrency.values.map((c) {
-              return RadioListTile<AppCurrency>(
-                title: Text(c.name.toUpperCase().replaceAll('CURRENCY', '')),
-                value: c,
-                groupValue: state.currency,
-                activeColor: Theme.of(context).primaryColor,
-                onChanged: (val) {
-                  if (val != null) {
-                    notifier.setCurrency(val);
-                    Navigator.pop(context);
-                  }
-                },
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showLanguageDialog(BuildContext context, AppState state, AppStateNotifier notifier) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Dil / Language'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: Language.values.map((l) {
-              return RadioListTile<Language>(
-                title: Text(l == Language.tr ? 'Türkçe' : 'English'),
-                value: l,
-                groupValue: state.language,
-                activeColor: Theme.of(context).primaryColor,
-                onChanged: (val) {
-                  if (val != null) {
-                    notifier.setLanguage(val);
-                    Navigator.pop(context);
-                  }
-                },
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showResetDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Dikkat!', style: TextStyle(color: Colors.red)),
-          content: const Text('Tüm varlıklarınız ve geçmiş kayıtlarınız silinecek ve başlangıç ekranına döneceksiniz. Bu işlem geri alınamaz.\n\nEmin misiniz?'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(isTr ? 'Dikkat!' : 'Warning!', style: const TextStyle(color: Colors.red)),
+          content: Text(isTr 
+            ? 'Tüm varlıklarınız ve geçmiş kayıtlarınız silinecek ve başlangıç ekranına döneceksiniz. Bu işlem geri alınamaz.\n\nEmin misiniz?'
+            : 'All your assets and history will be deleted and you will return to the start screen. This cannot be undone.\n\nAre you sure?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('İptal'),
+              child: Text(isTr ? 'İptal' : 'Cancel', style: const TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, 
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
               onPressed: () async {
                 final assetsBox = Hive.box<AssetModel>('assets');
                 await assetsBox.clear();
@@ -212,7 +282,7 @@ class SettingsScreen extends ConsumerWidget {
                   context.go('/welcome');
                 }
               },
-              child: const Text('Evet, Sıfırla'),
+              child: Text(isTr ? 'Evet, Sıfırla' : 'Yes, Reset'),
             ),
           ],
         );

@@ -1,27 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../calculator/presentation/calculator_provider.dart';
+import '../../assets/domain/asset_model.dart';
+import '../../assets/presentation/widgets/add_asset_dialog.dart';
 
 class SummaryScreen extends ConsumerWidget {
   const SummaryScreen({super.key});
 
+  IconData _getIconForCategory(AssetCategory category) {
+    switch (category) {
+      case AssetCategory.gold: return Icons.grid_goldenratio_rounded;
+      case AssetCategory.cash: return Icons.payments_rounded;
+      case AssetCategory.agriculture: return Icons.agriculture_rounded;
+      case AssetCategory.livestock: return Icons.pets_rounded;
+      case AssetCategory.receivable: return Icons.account_balance_rounded;
+      case AssetCategory.debt: return Icons.money_off_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
-    final calcAsync = ref.watch(calculatorProvider);
     final isTr = appState.language == Language.tr;
+    final calcAsync = ref.watch(calculatorProvider);
+    final assetsAsync = ref.watch(assetsProvider);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Text(isTr ? 'Özet' : 'Summary', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        backgroundColor: const Color(0xFFF8F9FA),
+        elevation: 0,
+        title: Text(isTr ? 'Özet' : 'Summary', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.share_rounded),
-            color: Theme.of(context).primaryColor,
+            color: const Color(0xFFF3A712),
             onPressed: () {
               // Share logic
             },
@@ -35,59 +52,56 @@ class SummaryScreen extends ConsumerWidget {
           final progressPercent = calc.nisabThreshold > 0 
             ? (calc.netZakatableAmount / calc.nisabThreshold).clamp(0.0, 1.0) 
             : 0.0;
+            
+          final assets = assetsAsync.value ?? [];
+          final myAssets = assets.where((a) => a.category != AssetCategory.debt).toList();
+          final myDebts = assets.where((a) => a.category == AssetCategory.debt).toList();
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 80),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Hero Card
+                // Hero Card (Dark Slate Grey)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
                   decoration: BoxDecoration(
+                    color: Colors.grey[900],
                     borderRadius: BorderRadius.circular(24),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: calc.isNisabReached 
-                        ? [Theme.of(context).primaryColor, Colors.orange.shade400]
-                        : [Colors.grey.shade600, Colors.grey.shade800],
-                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: (calc.isNisabReached ? Theme.of(context).primaryColor : Colors.grey).withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
                       )
                     ],
                   ),
                   child: Column(
                     children: [
                       Text(
-                        isTr ? 'TOPLAM ZEKAT' : 'TOTAL ZAKAT',
+                        isTr ? 'TOPLAM ÖDENECEK ZEKAT' : 'TOTAL ZAKAT',
                         style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '₺${calc.isNisabReached ? calc.zakatToPay.toStringAsFixed(2) : '0.00'}',
+                        '₺${calc.isNisabReached ? calc.zakatToPay.toStringAsFixed(2) : '0,00'}',
                         style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
                       ),
                       const SizedBox(height: 16),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.black.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(calc.isNisabReached ? Icons.check_circle_rounded : Icons.info_outline_rounded, color: Colors.white, size: 16),
+                            const Icon(Icons.info_outline_rounded, color: Colors.white, size: 16),
                             const SizedBox(width: 4),
                             Text(
-                              calc.isNisabReached ? (isTr ? 'NİSAB AŞILDI' : 'NISAB MET') : (isTr ? 'NİSABA ULAŞILMADI' : 'NISAB NOT MET'),
+                              calc.isNisabReached ? (isTr ? 'NİSAB MİKTARI ÜSTÜNDE' : 'ABOVE NISAB THRESHOLD') : (isTr ? 'NİSAB MİKTARI ALTINDA' : 'BELOW NISAB THRESHOLD'),
                               style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -98,21 +112,23 @@ class SummaryScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Nisab Progress Bar
+                // Nisab Progress Card (White)
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+                    ],
                   ),
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(isTr ? 'Net Varlık' : 'Net Worth', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                          Text('₺${calc.netZakatableAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(isTr ? 'Mevcut Net Varlık' : 'Net Worth', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          Text('₺${calc.netZakatableAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -120,7 +136,7 @@ class SummaryScreen extends ConsumerWidget {
                         value: progressPercent,
                         minHeight: 10,
                         backgroundColor: Colors.grey.shade200,
-                        valueColor: AlwaysStoppedAnimation<Color>(calc.isNisabReached ? Colors.green : Theme.of(context).primaryColor),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF3A712)),
                         borderRadius: BorderRadius.circular(5),
                       ),
                       const SizedBox(height: 8),
@@ -131,8 +147,8 @@ class SummaryScreen extends ConsumerWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(isTr ? 'Nisab Sınırı' : 'Nisab Limit', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                              Text('₺${calc.nisabThreshold.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+                              Text(isTr ? 'Nisab Sınırı' : 'Nisab Limit', style: const TextStyle(color: Color(0xFFF3A712), fontSize: 12)),
+                              Text('₺${calc.nisabThreshold.toStringAsFixed(0)}', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
                             ],
                           )
                         ],
@@ -146,36 +162,165 @@ class SummaryScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(isTr ? 'Varlıklarım' : 'My Assets', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    TextButton(
-                      onPressed: () => context.go('/assets'),
+                    Text(isTr ? 'Varlıklarım' : 'My Assets', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                    TextButton.icon(
+                      onPressed: () {
+                        showDialog(context: context, builder: (context) => const AddAssetDialog());
+                      },
                       style: TextButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-                        foregroundColor: Theme.of(context).primaryColorDark,
+                        backgroundColor: const Color(0xFFF3A712).withOpacity(0.1),
+                        foregroundColor: const Color(0xFFF3A712),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      child: Text(isTr ? 'Yeni Ekle' : 'Add New', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: Text(isTr ? 'Yeni Ekle' : 'Add New', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     )
                   ],
                 ),
                 const SizedBox(height: 16),
 
-                // Dummy Assets view (We will wire up the actual list next)
+                // Assets List Card
                 Container(
-                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.post_add_rounded, size: 48, color: Colors.grey.shade300),
-                        const SizedBox(height: 8),
-                        Text(isTr ? 'Varlıklarınız Varlıklar sekmesinde eklenebilir.' : 'Your assets can be added from the Assets tab.', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                      ],
-                    ),
+                  child: myAssets.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(
+                          child: Text(isTr ? 'Varlık kaydı bulunmuyor.' : 'No assets found.', style: TextStyle(color: Colors.grey.shade400)),
+                        ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: myAssets.length,
+                        separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                        itemBuilder: (context, index) {
+                          final asset = myAssets[index];
+                          return ListTile(
+                            leading: Container(
+                              width: 40, height: 40,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3A712).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(_getIconForCategory(asset.category), color: const Color(0xFFF3A712), size: 20),
+                            ),
+                            title: Text(asset.name, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                            subtitle: Text(asset.category.name.toUpperCase(), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('₺${asset.value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                                IconButton(
+                                  icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
+                                  onPressed: () {
+                                    final box = Hive.box<AssetModel>('assets');
+                                    box.delete(asset.id);
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                ),
+                const SizedBox(height: 24),
+
+                // Debts Card
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.money_off_rounded, color: Colors.red, size: 20),
+                                const SizedBox(width: 8),
+                                Text(isTr ? 'Toplam Borçlar' : 'Total Debts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                              ],
+                            ),
+                            Text('- ₺${calc.totalDebts.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      if (myDebts.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: Text(isTr ? 'Borç kaydı bulunmuyor.' : 'No debts found.', style: TextStyle(color: Colors.grey.shade400)),
+                        )
+                      else
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: myDebts.length,
+                          separatorBuilder: (_, __) => Divider(height: 1, color: Colors.red.shade50),
+                          itemBuilder: (context, index) {
+                            final asset = myDebts[index];
+                            return ListTile(
+                              leading: Container(
+                                width: 40, height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(_getIconForCategory(asset.category), color: Colors.red, size: 20),
+                              ),
+                              title: Text(asset.name, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('- ₺${asset.value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
+                                  IconButton(
+                                    icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
+                                    onPressed: () {
+                                      final box = Hive.box<AssetModel>('assets');
+                                      box.delete(asset.id);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Info Footer Card
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info, color: Color(0xFFF3A712)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          isTr 
+                            ? "Zekat hesaplaması, mevcut varlıklarınızdan borçlarınız düşüldükten sonra kalan net varlığın %2.5'i (1/40) üzerinden yapılmıştır."
+                            : "Zakat calculation is based on 2.5% (1/40) of your net wealth after deducting your debts from your assets.",
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12, height: 1.5),
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ],
