@@ -12,7 +12,14 @@ class GenelParaService implements ExchangeRateService {
   @override
   Future<List<ExchangeRateModel>> fetchRates() async {
     try {
-      final response = await dio.get('https://api.genelpara.com/embed/para-birimleri.json');
+      final response = await dio.get(
+        'https://api.genelpara.com/embed/para-birimleri.json',
+        options: Options(
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          },
+        ),
+      );
       final data = response.data as Map<String, dynamic>;
       
       return [

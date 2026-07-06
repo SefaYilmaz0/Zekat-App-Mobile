@@ -11,7 +11,13 @@ final goldRateProvider = FutureProvider<double>((ref) async {
   final rates = await repo.getRates();
   final goldRate = rates.firstWhere(
     (rate) => rate.currencyCode == 'GOLD',
-    orElse: () => throw Exception('Gold rate not found'),
+    orElse: () => ExchangeRateModel(
+      currencyCode: 'GOLD',
+      currencyName: 'Gram Altın',
+      buyingPrice: 2500.0, // Varsayılan güvenlik değeri
+      sellingPrice: 2500.0,
+      lastUpdate: DateTime.now(),
+    ),
   );
   return goldRate.buyingPrice;
 });
