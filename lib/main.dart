@@ -24,7 +24,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart' hide AppState;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await MobileAds.instance.initialize();
+  MobileAds.instance.initialize();
 
   await Hive.initFlutter();
 
