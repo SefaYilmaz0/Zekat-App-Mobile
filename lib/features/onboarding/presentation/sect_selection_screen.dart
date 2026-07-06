@@ -117,19 +117,18 @@ class SectSelectionScreen extends ConsumerWidget {
                       onTap: () => notifier.setSect(sectData['id'] as Sect),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
-                            width: 2,
+                            width: 1.5,
                           ),
                           boxShadow: [
-                            if (!isSelected)
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              )
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            )
                           ],
                         ),
                         child: Stack(
@@ -186,7 +185,7 @@ class SectSelectionScreen extends ConsumerWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline_rounded, color: Theme.of(context).primaryColor),
+                    Icon(Icons.info, color: Theme.of(context).primaryColor),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -237,7 +236,7 @@ class SectSelectionScreen extends ConsumerWidget {
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward_rounded),
+                      const Icon(Icons.arrow_forward_rounded, size: 20),
                     ],
                   ),
                 ),

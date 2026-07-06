@@ -75,12 +75,13 @@ class HistoryScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: null, // Disabled
+                    onPressed: () {}, // Active visually
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      foregroundColor: Colors.grey.shade500,
+                      backgroundColor: const Color(0xFFF3A712),
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: 0,
                     ),
                     child: Text(isTr ? 'Ödeme Yap' : 'Make Payment', style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),

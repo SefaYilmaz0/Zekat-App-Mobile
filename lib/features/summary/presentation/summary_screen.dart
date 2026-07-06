@@ -7,6 +7,24 @@ import '../../calculator/presentation/calculator_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../assets/presentation/widgets/add_asset_dialog.dart';
 
+class GridPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.03)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (double i = -size.height; i < size.width; i += 20) {
+      canvas.drawLine(Offset(i, 0), Offset(i + size.height, size.height), paint);
+      canvas.drawLine(Offset(i + size.height, 0), Offset(i, size.height), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class SummaryScreen extends ConsumerWidget {
   const SummaryScreen({super.key});
 
@@ -65,49 +83,61 @@ class SummaryScreen extends ConsumerWidget {
                 // Hero Card (Dark Slate Grey)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
                   decoration: BoxDecoration(
-                    color: Colors.grey[900],
+                    color: const Color(0xFF2E3643),
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withOpacity(0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       )
                     ],
                   ),
-                  child: Column(
-                    children: [
-                      Text(
-                        isTr ? 'TOPLAM ÖDENECEK ZEKAT' : 'TOTAL ZAKAT',
-                        style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '₺${calc.isNisabReached ? calc.zakatToPay.toStringAsFixed(2) : '0,00'}',
-                        style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(20),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: CustomPaint(painter: GridPatternPainter()),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.info_outline_rounded, color: Colors.white, size: 16),
-                            const SizedBox(width: 4),
-                            Text(
-                              calc.isNisabReached ? (isTr ? 'NİSAB MİKTARI ÜSTÜNDE' : 'ABOVE NISAB THRESHOLD') : (isTr ? 'NİSAB MİKTARI ALTINDA' : 'BELOW NISAB THRESHOLD'),
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                          child: Column(
+                            children: [
+                              Text(
+                                isTr ? 'TOPLAM ÖDENECEK ZEKAT' : 'TOTAL ZAKAT',
+                                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '₺${calc.isNisabReached ? calc.zakatToPay.toStringAsFixed(2) : '0,00'}',
+                                style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.info_outline_rounded, color: Colors.white, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      calc.isNisabReached ? (isTr ? 'NİSAB MİKTARI ÜSTÜNDE' : 'ABOVE NISAB THRESHOLD') : (isTr ? 'NİSAB MİKTARI ALTINDA' : 'BELOW NISAB THRESHOLD'),
+                                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
                         ),
-                      )
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -188,9 +218,24 @@ class SummaryScreen extends ConsumerWidget {
                   ),
                   child: myAssets.isEmpty
                     ? Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.symmetric(vertical: 40),
                         child: Center(
-                          child: Text(isTr ? 'Varlık kaydı bulunmuyor.' : 'No assets found.', style: TextStyle(color: Colors.grey.shade400)),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 64, height: 64,
+                                decoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
+                                child: Icon(Icons.post_add_rounded, color: Colors.grey.shade400, size: 32),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(isTr ? 'Henüz varlık eklenmedi.' : 'No assets added yet.', style: TextStyle(color: Colors.grey.shade500)),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () => showDialog(context: context, builder: (context) => const AddAssetDialog()),
+                                child: Text(isTr ? 'Varlık Ekle' : 'Add Asset', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
+                              )
+                            ],
+                          ),
                         ),
                       )
                     : ListView.separated(
@@ -239,8 +284,14 @@ class SummaryScreen extends ConsumerWidget {
                   ),
                   child: Column(
                     children: [
-                      Padding(
+                      Container(
                         padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2), // Light red background
+                          borderRadius: myDebts.isEmpty 
+                            ? BorderRadius.circular(16)
+                            : const BorderRadius.vertical(top: Radius.circular(16)),
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -248,10 +299,10 @@ class SummaryScreen extends ConsumerWidget {
                               children: [
                                 const Icon(Icons.money_off_rounded, color: Colors.red, size: 20),
                                 const SizedBox(width: 8),
-                                Text(isTr ? 'Toplam Borçlar' : 'Total Debts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                                Text(isTr ? 'Toplam Borçlar' : 'Total Debts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black)),
                               ],
                             ),
-                            Text('- ₺${calc.totalDebts.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                            Text('- ₺${calc.totalDebts.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
                       ),

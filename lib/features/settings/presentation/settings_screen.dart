@@ -57,26 +57,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50.withOpacity(0.5),
+              color: const Color(0xFFFFF9E6),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.blue.shade100),
+              border: Border.all(color: const Color(0xFFFDE68A)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.save_rounded, color: Colors.blue.shade700),
+                const Icon(Icons.lock_rounded, color: Color(0xFFF3A712)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(isTr ? 'Verileriniz Cihazınızda' : 'Your Data is on Your Device', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+                      Text(isTr ? 'Verileriniz Cihazınızda' : 'Your Data is on Your Device', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
                       const SizedBox(height: 4),
                       Text(
                         isTr 
                           ? 'Uygulama herhangi bir sunucuya veri göndermez. Tüm hesaplamalarınız ve tercihleriniz bu cihazın hafızasında güvenle saklanır.'
                           : 'The app does not send data to any server. All calculations and preferences are securely stored in this device\'s memory.',
-                        style: TextStyle(color: Colors.blue.shade800, fontSize: 12, height: 1.5),
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12, height: 1.5),
                       ),
                     ],
                   ),
@@ -236,13 +236,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildRateRow(String code, String name, IconData icon) {
     final rate = _rates.firstWhere((r) => r.currencyCode == code, orElse: () => ExchangeRateModel(currencyCode: code, currencyName: name, buyingPrice: 0, sellingPrice: 0, lastUpdate: DateTime.now()));
+    
+    Color iconColor;
+    Color bgColor;
+    if (code == 'GOLD') {
+      iconColor = const Color(0xFFF3A712);
+      bgColor = const Color(0xFFFEF3C7);
+    } else if (code == 'USD') {
+      iconColor = const Color(0xFF10B981);
+      bgColor = const Color(0xFFD1FAE5);
+    } else { // EUR
+      iconColor = const Color(0xFF3B82F6);
+      bgColor = const Color(0xFFDBEAFE);
+    }
+
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
-        child: Icon(icon, color: Colors.grey.shade600, size: 20),
+        decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+        child: Icon(icon, color: iconColor, size: 20),
       ),
-      title: Text(name, style: TextStyle(color: Colors.grey.shade600)),
+      title: Text(name, style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
       trailing: Text('₺${rate.buyingPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
     );
   }

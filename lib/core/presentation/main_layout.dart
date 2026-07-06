@@ -54,20 +54,26 @@ class MainLayout extends ConsumerWidget {
       backgroundColor: const Color(0xFFF8F9FA),
       body: child,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFF3A712),
-        foregroundColor: Colors.white,
-        elevation: 4,
-        shape: const CircleBorder(),
-        onPressed: () {
-          showDialog(context: context, builder: (context) => const AddAssetDialog());
-        },
-        child: const Icon(Icons.add_rounded, size: 32),
+      floatingActionButton: SizedBox(
+        height: 64,
+        width: 64,
+        child: FloatingActionButton(
+          backgroundColor: const Color(0xFFF3A712),
+          foregroundColor: Colors.white,
+          elevation: 8,
+          shape: const CircleBorder(),
+          onPressed: () {
+            showDialog(context: context, builder: (context) => const AddAssetDialog());
+          },
+          child: const Icon(Icons.add_rounded, size: 36),
+        ),
       ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
         color: Colors.white,
+        elevation: 16,
+        shadowColor: Colors.black45,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
