@@ -4,6 +4,7 @@ import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../exchange_rates/data/exchange_rate_repository.dart';
+import '../../exchange_rates/domain/exchange_rate_model.dart';
 import '../domain/calculation_result.dart';
 
 final goldRateProvider = FutureProvider<double>((ref) async {

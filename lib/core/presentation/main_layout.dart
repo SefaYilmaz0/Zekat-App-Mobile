@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/app_state_provider.dart';
 import '../domain/enums.dart';
 
-import '../../assets/presentation/widgets/add_asset_dialog.dart';
+import '../../features/assets/presentation/widgets/add_asset_dialog.dart';
 
 class MainLayout extends ConsumerWidget {
   final Widget child;
