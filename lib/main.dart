@@ -19,7 +19,7 @@ import 'features/history/presentation/history_screen.dart';
 import 'features/guide/presentation/guide_screen.dart';
 import 'features/settings/presentation/settings_screen.dart';
 
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' hide AppState;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
