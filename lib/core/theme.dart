@@ -27,10 +27,8 @@ class AppTheme {
         primary: primary,
         secondary: primaryDark,
         surface: surfaceLight,
-        background: backgroundLight,
         onPrimary: textMainLight,
         onSecondary: Colors.white,
-        onSurface: textMainLight,
         onSurface: textMainLight,
       ),
       appBarTheme: const AppBarTheme(
@@ -62,10 +60,8 @@ class AppTheme {
         primary: primary,
         secondary: primaryDark,
         surface: surfaceDark,
-        background: backgroundDark,
         onPrimary: textMainDark,
         onSecondary: Colors.white,
-        onSurface: textMainDark,
         onSurface: textMainDark,
       ),
       appBarTheme: const AppBarTheme(
