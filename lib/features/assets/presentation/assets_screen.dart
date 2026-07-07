@@ -86,7 +86,7 @@ class AssetsScreen extends ConsumerWidget {
                       final asset = myAssets[index];
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                          backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                           foregroundColor: Theme.of(context).primaryColor,
                           child: Icon(_getIconForCategory(asset.category)),
                         ),
@@ -123,7 +123,7 @@ class AssetsScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Card(
                   elevation: 0,
-                  color: Colors.red.shade50.withOpacity(0.5),
+                  color: Colors.red.shade50.withValues(alpha: 0.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.red.shade100)),
                   child: ListView.separated(
                     shrinkWrap: true,
@@ -134,7 +134,7 @@ class AssetsScreen extends ConsumerWidget {
                       final asset = myDebts[index];
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Colors.red.withOpacity(0.1),
+                          backgroundColor: Colors.red.withValues(alpha: 0.1),
                           foregroundColor: Colors.red,
                           child: Icon(_getIconForCategory(asset.category)),
                         ),

@@ -136,7 +136,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade100),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: _isLoadingRates 
               ? const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(color: Color(0xFFF3A712))))
@@ -160,7 +160,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade100),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Column(
               children: [
@@ -242,7 +242,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade100),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Column(
               children: [

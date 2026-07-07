@@ -30,7 +30,7 @@ class WelcomeScreen extends ConsumerWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Theme.of(context).primaryColor.withOpacity(0.1),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.1),
                       Colors.transparent,
                     ],
                   ),
@@ -52,7 +52,7 @@ class WelcomeScreen extends ConsumerWidget {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -88,9 +88,9 @@ class WelcomeScreen extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.3)),
                         borderRadius: BorderRadius.circular(20),
-                        color: Theme.of(context).primaryColor.withOpacity(0.05),
+                        color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
                       ),
                       child: Text(
                         isTr ? 'English' : 'Türkçe',
@@ -123,7 +123,7 @@ class WelcomeScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context).primaryColor.withOpacity(0.15),
+                            color: Theme.of(context).primaryColor.withValues(alpha: 0.15),
                             blurRadius: 40,
                             offset: const Offset(0, 20),
                           ),
@@ -145,7 +145,7 @@ class WelcomeScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFF97316).withOpacity(0.4),
+                                color: const Color(0xFFF97316).withValues(alpha: 0.4),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -221,7 +221,7 @@ class WelcomeScreen extends ConsumerWidget {
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         elevation: 8,
-                        shadowColor: Theme.of(context).primaryColor.withOpacity(0.5),
+                        shadowColor: Theme.of(context).primaryColor.withValues(alpha: 0.5),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,

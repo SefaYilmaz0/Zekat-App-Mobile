@@ -49,7 +49,7 @@ class HistoryScreen extends ConsumerWidget {
               color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +191,7 @@ class HistoryScreen extends ConsumerWidget {
                       color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,7 +204,7 @@ class HistoryScreen extends ConsumerWidget {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF3A712).withOpacity(0.1),
+                                    color: const Color(0xFFF3A712).withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Icon(Icons.check_circle_rounded, color: Color(0xFFF3A712), size: 20),

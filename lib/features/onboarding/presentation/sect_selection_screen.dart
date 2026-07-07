@@ -94,7 +94,7 @@ class SectSelectionScreen extends ConsumerWidget {
                 isTr
                     ? 'Zekat hesaplamaları mezheplere göre farklılık gösterebilir. Lütfen tabi olduğunuz mezhebi seçin.'
                     : 'Zakat calculations may vary according to sects. Please select the sect you follow.',
-                style: TextStyle(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6), height: 1.5),
+                style: TextStyle(color: Theme.of(context).colorScheme.onBackground.withValues(alpha: 0.6), height: 1.5),
               ),
               const SizedBox(height: 24),
 
@@ -119,7 +119,7 @@ class SectSelectionScreen extends ConsumerWidget {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
+                              color: Colors.black.withValues(alpha: 0.03),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             )
@@ -193,7 +193,7 @@ class SectSelectionScreen extends ConsumerWidget {
                           Text(
                             selectedSectData['desc'] as String,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onBackground.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onBackground.withValues(alpha: 0.6),
                               fontSize: 12,
                               height: 1.5,
                             ),
@@ -220,7 +220,7 @@ class SectSelectionScreen extends ConsumerWidget {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 8,
-                    shadowColor: Theme.of(context).primaryColor.withOpacity(0.5),
+                    shadowColor: Theme.of(context).primaryColor.withValues(alpha: 0.5),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

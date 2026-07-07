@@ -14,7 +14,7 @@ class GridPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.03)
+      ..color = Colors.white.withValues(alpha: 0.03)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 
@@ -90,7 +90,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                 final text = isTr
                     ? 'ZekatApp ile hesaplanan Toplam Zekat Tutarı: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Sınırı: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Varlık: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}'
                     : 'Total Zakat calculated with ZakatApp: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Limit: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Worth: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}';
-                Share.share(text);
+                SharePlus.instance.share(ShareParams(text: text));
               },
             )
         ],
@@ -120,7 +120,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       )
@@ -139,7 +139,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                             children: [
                               Text(
                                 isTr ? 'TOPLAM ÖDENECEK ZEKAT' : 'TOTAL ZAKAT',
-                                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                               ),
                               const SizedBox(height: 8),
                               Text(
@@ -150,7 +150,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
@@ -182,7 +182,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
                     ],
                   ),
                   child: Column(
@@ -231,7 +231,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                         showDialog(context: context, builder: (context) => const AddAssetDialog());
                       },
                       style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFFF3A712).withOpacity(0.1),
+                        backgroundColor: const Color(0xFFF3A712).withValues(alpha: 0.1),
                         foregroundColor: const Color(0xFFF3A712),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
@@ -248,7 +248,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
                   child: myAssets.isEmpty
                     ? Padding(
@@ -283,7 +283,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                             leading: Container(
                               width: 40, height: 40,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF3A712).withOpacity(0.1),
+                                color: const Color(0xFFF3A712).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Icon(_getIconForCategory(asset.category), color: const Color(0xFFF3A712), size: 20),
@@ -312,7 +312,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
                   child: Column(
                     children: [
@@ -348,14 +348,14 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: myDebts.length,
-                          separatorBuilder: (_, __) => Divider(height: 1, color: Colors.red.shade50),
+                          separatorBuilder: (context, index) => Divider(height: 1, color: Colors.red.shade50),
                           itemBuilder: (context, index) {
                             final asset = myDebts[index];
                             return ListTile(
                               leading: Container(
                                 width: 40, height: 40,
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
+                                  color: Colors.red.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(_getIconForCategory(asset.category), color: Colors.red, size: 20),
@@ -393,7 +393,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     ),
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: const Color(0xFFD97706).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+                      BoxShadow(color: const Color(0xFFD97706).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))
                     ],
                   ),
                   child: Row(

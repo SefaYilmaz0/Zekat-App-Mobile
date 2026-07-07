@@ -162,7 +162,7 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
         decoration: BoxDecoration(
           color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
           border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade100),
         ),
         child: Column(
@@ -173,7 +173,7 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
                 Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: Theme.of(context).primaryColor, size: 20),

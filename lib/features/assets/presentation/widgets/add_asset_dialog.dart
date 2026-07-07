@@ -104,7 +104,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade200),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4, offset: const Offset(0, 2))],
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -227,7 +227,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: isSelected ? const Color(0xFFF3A712).withOpacity(0.1) : Colors.transparent,
+                        backgroundColor: isSelected ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
                         side: BorderSide(color: isSelected ? const Color(0xFFF3A712) : Colors.grey.shade300),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         padding: EdgeInsets.zero,
@@ -382,7 +382,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: isSelected ? const Color(0xFFF3A712).withOpacity(0.1) : Colors.transparent,
+                      backgroundColor: isSelected ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
                       side: BorderSide(color: isSelected ? const Color(0xFFF3A712) : Colors.grey.shade300),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: EdgeInsets.zero,
@@ -526,7 +526,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: isSelected ? const Color(0xFFF3A712).withOpacity(0.1) : Colors.transparent,
+                      backgroundColor: isSelected ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
                       side: BorderSide(color: isSelected ? const Color(0xFFF3A712) : Colors.grey.shade300),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -652,7 +652,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
                   padding: const EdgeInsets.only(right: 4),
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: _irrigationType == 'natural' ? const Color(0xFFF3A712).withOpacity(0.1) : Colors.transparent,
+                      backgroundColor: _irrigationType == 'natural' ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
                       side: BorderSide(color: _irrigationType == 'natural' ? const Color(0xFFF3A712) : Colors.grey.shade300),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -672,7 +672,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
                   padding: const EdgeInsets.only(left: 4),
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: _irrigationType == 'artificial' ? const Color(0xFFF3A712).withOpacity(0.1) : Colors.transparent,
+                      backgroundColor: _irrigationType == 'artificial' ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
                       side: BorderSide(color: _irrigationType == 'artificial' ? const Color(0xFFF3A712) : Colors.grey.shade300),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 8),
