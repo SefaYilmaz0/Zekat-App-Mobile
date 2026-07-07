@@ -19,7 +19,7 @@ class VersionCheckResult {
 }
 
 class VersionCheckService {
-  static const String _versionUrl = 'https://raw.githubusercontent.com/SefaYilmaz0/Zekat-App-Mobile/master/version.json';
+  static const String _versionUrl = 'https://zekatapp-17822178084.us-west1.run.app/version.json';
 
   Future<VersionCheckResult?> checkVersion() async {
     try {
