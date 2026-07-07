@@ -46,6 +46,7 @@ class SummaryScreen extends ConsumerWidget {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
     final calcAsync = ref.watch(calculatorProvider);
+    final calc = calcAsync.value;
     final assetsAsync = ref.watch(assetsProvider);
 
     return Scaffold(
@@ -56,16 +57,17 @@ class SummaryScreen extends ConsumerWidget {
         title: Text(isTr ? 'Özet' : 'Summary', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share_rounded),
-            color: const Color(0xFFF3A712),
-            onPressed: () {
-              final text = isTr
-                  ? 'ZekatApp ile hesaplanan Toplam Zekat Tutarı: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Sınırı: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Varlık: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}'
-                  : 'Total Zakat calculated with ZakatApp: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Limit: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Worth: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}';
-              Share.share(text);
-            },
-          )
+          if (calc != null)
+            IconButton(
+              icon: const Icon(Icons.share_rounded),
+              color: const Color(0xFFF3A712),
+              onPressed: () {
+                final text = isTr
+                    ? 'ZekatApp ile hesaplanan Toplam Zekat Tutarı: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Sınırı: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Varlık: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}'
+                    : 'Total Zakat calculated with ZakatApp: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Limit: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Worth: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}';
+                Share.share(text);
+              },
+            )
         ],
       ),
       body: calcAsync.when(
