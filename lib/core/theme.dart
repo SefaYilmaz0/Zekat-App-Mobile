@@ -31,7 +31,7 @@ class AppTheme {
         onPrimary: textMainLight,
         onSecondary: Colors.white,
         onSurface: textMainLight,
-        onBackground: textMainLight,
+        onSurface: textMainLight,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: backgroundLight,
@@ -66,7 +66,7 @@ class AppTheme {
         onPrimary: textMainDark,
         onSecondary: Colors.white,
         onSurface: textMainDark,
-        onBackground: textMainDark,
+        onSurface: textMainDark,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: backgroundDark,
@@ -87,3 +87,4 @@ class AppTheme {
     );
   }
 }
+

@@ -789,3 +789,4 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
     );
   }
 }
+

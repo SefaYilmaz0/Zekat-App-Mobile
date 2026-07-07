@@ -64,3 +64,4 @@ class VersionCheckService {
     return null;
   }
 }
+

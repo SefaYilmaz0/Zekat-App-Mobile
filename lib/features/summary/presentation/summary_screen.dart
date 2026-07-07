@@ -276,7 +276,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: myAssets.length,
-                        separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                        separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
                         itemBuilder: (context, index) {
                           final asset = myAssets[index];
                           return ListTile(
@@ -420,3 +420,4 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
     );
   }
 }
+

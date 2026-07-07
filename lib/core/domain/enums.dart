@@ -31,3 +31,4 @@ enum AppCurrency {
   @HiveField(2)
   eur,
 }
+

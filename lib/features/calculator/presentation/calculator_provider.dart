@@ -105,3 +105,4 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
     goldRate: goldRate,
   ));
 });
+

@@ -66,3 +66,4 @@ class HistoryModelAdapter extends TypeAdapter<HistoryModel> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+

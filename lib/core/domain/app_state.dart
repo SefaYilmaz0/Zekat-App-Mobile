@@ -28,3 +28,4 @@ class AppState extends HiveObject {
     required this.onboardingComplete,
   });
 }
+

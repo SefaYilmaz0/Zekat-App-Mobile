@@ -94,7 +94,7 @@ class SectSelectionScreen extends ConsumerWidget {
                 isTr
                     ? 'Zekat hesaplamaları mezheplere göre farklılık gösterebilir. Lütfen tabi olduğunuz mezhebi seçin.'
                     : 'Zakat calculations may vary according to sects. Please select the sect you follow.',
-                style: TextStyle(color: Theme.of(context).colorScheme.onBackground.withValues(alpha: 0.6), height: 1.5),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), height: 1.5),
               ),
               const SizedBox(height: 24),
 
@@ -148,7 +148,7 @@ class SectSelectionScreen extends ConsumerWidget {
                                     sectData['title'] as String,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onBackground,
+                                      color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface,
                                     ),
                                   ),
                                 ],
@@ -193,7 +193,7 @@ class SectSelectionScreen extends ConsumerWidget {
                           Text(
                             selectedSectData['desc'] as String,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onBackground.withValues(alpha: 0.6),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                               fontSize: 12,
                               height: 1.5,
                             ),
@@ -242,3 +242,4 @@ class SectSelectionScreen extends ConsumerWidget {
     );
   }
 }
+

@@ -71,7 +71,7 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
                       ),
                     );
                   }
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -198,3 +198,4 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
     );
   }
 }
+

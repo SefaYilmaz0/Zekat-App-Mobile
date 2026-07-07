@@ -16,3 +16,4 @@ class ApiClient {
     return await dio.get('/exchange-rates');
   }
 }
+

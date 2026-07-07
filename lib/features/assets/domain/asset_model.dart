@@ -51,3 +51,4 @@ class AssetModel extends HiveObject {
     this.details,
   });
 }
+

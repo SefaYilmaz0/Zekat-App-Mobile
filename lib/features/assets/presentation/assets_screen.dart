@@ -81,7 +81,7 @@ class AssetsScreen extends ConsumerWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: myAssets.length,
-                    separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                    separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
                     itemBuilder: (context, index) {
                       final asset = myAssets[index];
                       return ListTile(
@@ -129,7 +129,7 @@ class AssetsScreen extends ConsumerWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: myDebts.length,
-                    separatorBuilder: (_, __) => Divider(height: 1, color: Colors.red.shade100),
+                    separatorBuilder: (context, index) => Divider(height: 1, color: Colors.red.shade100),
                     itemBuilder: (context, index) {
                       final asset = myDebts[index];
                       return ListTile(
@@ -165,3 +165,4 @@ class AssetsScreen extends ConsumerWidget {
     );
   }
 }
+

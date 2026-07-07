@@ -137,3 +137,4 @@ class AppCurrencyAdapter extends TypeAdapter<AppCurrency> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+

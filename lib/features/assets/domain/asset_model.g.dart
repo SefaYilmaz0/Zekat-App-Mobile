@@ -116,3 +116,4 @@ class AssetCategoryAdapter extends TypeAdapter<AssetCategory> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+

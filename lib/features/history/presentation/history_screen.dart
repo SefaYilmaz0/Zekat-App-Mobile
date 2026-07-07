@@ -182,7 +182,7 @@ class HistoryScreen extends ConsumerWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final item = items[index];
                   return Container(
@@ -242,3 +242,4 @@ class HistoryScreen extends ConsumerWidget {
     );
   }
 }
+

@@ -48,3 +48,4 @@ class HistoryModel extends HiveObject {
     required this.liabilities,
   });
 }
+

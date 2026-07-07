@@ -51,3 +51,4 @@ class AppStateAdapter extends TypeAdapter<AppState> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+

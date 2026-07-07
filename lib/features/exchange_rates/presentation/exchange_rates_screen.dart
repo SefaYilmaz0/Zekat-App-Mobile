@@ -58,3 +58,4 @@ class ExchangeRatesScreen extends ConsumerWidget {
     );
   }
 }
+

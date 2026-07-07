@@ -90,3 +90,4 @@ class AppStateNotifier extends StateNotifier<AppState> {
     box.put('current', state);
   }
 }
+

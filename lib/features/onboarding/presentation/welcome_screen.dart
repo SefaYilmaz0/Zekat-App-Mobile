@@ -67,7 +67,7 @@ class WelcomeScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onBackground,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                           children: [
                             const TextSpan(text: 'Zekat'),
@@ -245,3 +245,4 @@ class WelcomeScreen extends ConsumerWidget {
     );
   }
 }
+

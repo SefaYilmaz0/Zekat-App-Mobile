@@ -23,3 +23,4 @@ String formatCurrency(double value, Language language, {int decimalDigits = 2}) 
   
   return formatter.format(value).trim();
 }
+

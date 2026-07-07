@@ -21,3 +21,4 @@ class AssetRepository {
     await _box.delete(id);
   }
 }
+

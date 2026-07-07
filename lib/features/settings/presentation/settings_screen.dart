@@ -182,7 +182,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   secondary: const Icon(Icons.dark_mode_outlined, color: Color(0xFFF3A712)),
                   title: Text(isTr ? 'Karanlık Mod' : 'Dark Mode', style: const TextStyle(fontWeight: FontWeight.w500)),
                   value: appState.isDark,
-                  activeColor: const Color(0xFFF3A712),
+                  activeThumbColor: const Color(0xFFF3A712),
                   onChanged: (val) => notifier.toggleTheme(),
                 ),
                 const Divider(height: 1, indent: 56),
@@ -385,3 +385,4 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 }
+

@@ -9,3 +9,4 @@ final exchangeRatesProvider = FutureProvider<List<ExchangeRateModel>>((ref) asyn
   final repository = ref.read(exchangeRateRepositoryProvider);
   return await repository.getRates();
 });
+

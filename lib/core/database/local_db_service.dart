@@ -11,3 +11,4 @@ class LocalDbService {
   static Box get assetsBox => Hive.box('assetsBox');
   static Box get settingsBox => Hive.box('settingsBox');
 }
+
