@@ -40,44 +40,53 @@ void main() async {
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+final onboardingCompleteProvider = Provider<bool>((ref) {
+  return ref.watch(appStateProvider.select((state) => state.onboardingComplete));
+});
+
+final goRouterProvider = Provider<GoRouter>((ref) {
+  final onboardingComplete = ref.watch(onboardingCompleteProvider);
+
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: onboardingComplete ? '/summary' : '/',
+    redirect: (context, state) {
+      final isOnboardingRoute = state.matchedLocation == '/' || state.matchedLocation == '/sect-select';
+      
+      if (onboardingComplete && isOnboardingRoute) {
+        return '/summary';
+      }
+      
+      if (!onboardingComplete && !isOnboardingRoute) {
+        return '/';
+      }
+      
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: '/sect-select',
+        builder: (context, state) => const SectSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/summary',
+        builder: (context, state) => const MainLayout(),
+      ),
+    ],
+  );
+});
+
 class ZekatApp extends ConsumerWidget {
   const ZekatApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
-
-    final goRouter = GoRouter(
-      navigatorKey: _rootNavigatorKey,
-      initialLocation: appState.onboardingComplete ? '/summary' : '/',
-      redirect: (context, state) {
-        final isOnboardingRoute = state.matchedLocation == '/' || state.matchedLocation == '/sect-select';
-        
-        if (appState.onboardingComplete && isOnboardingRoute) {
-          return '/summary';
-        }
-        
-        if (!appState.onboardingComplete && !isOnboardingRoute) {
-          return '/';
-        }
-        
-        return null;
-      },
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const WelcomeScreen(),
-        ),
-        GoRoute(
-          path: '/sect-select',
-          builder: (context, state) => const SectSelectionScreen(),
-        ),
-        GoRoute(
-          path: '/summary',
-          builder: (context, state) => const MainLayout(),
-        ),
-      ],
-    );
+    final goRouter = ref.watch(goRouterProvider);
 
     return MaterialApp.router(
       title: 'Zekat Hesaplama Aracı',
