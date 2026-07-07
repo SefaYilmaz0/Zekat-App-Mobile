@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:intl/date_symbol_data_local.dart';
+
 import 'core/theme.dart';
 import 'core/domain/enums.dart';
 import 'core/domain/app_state.dart';
@@ -16,6 +18,7 @@ import 'features/onboarding/presentation/sect_selection_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('tr_TR', null);
 
   await Hive.initFlutter();
 
