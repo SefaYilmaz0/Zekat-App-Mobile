@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
+import '../../../core/utils/currency_formatter.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../assets/presentation/widgets/add_asset_dialog.dart';
@@ -58,7 +60,10 @@ class SummaryScreen extends ConsumerWidget {
             icon: const Icon(Icons.share_rounded),
             color: const Color(0xFFF3A712),
             onPressed: () {
-              // Share logic
+              final text = isTr
+                  ? 'ZekatApp ile hesaplanan Toplam Zekat Tutarı: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Sınırı: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Varlık: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}'
+                  : 'Total Zakat calculated with ZakatApp: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Limit: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Worth: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}';
+              Share.share(text);
             },
           )
         ],
@@ -111,7 +116,7 @@ class SummaryScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                '₺${calc.isNisabReached ? calc.zakatToPay.toStringAsFixed(2) : '0,00'}',
+                                '₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}',
                                 style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
                               ),
                               const SizedBox(height: 16),
@@ -157,8 +162,8 @@ class SummaryScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(isTr ? 'Mevcut Net Varlık' : 'Net Worth', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                          Text('₺${calc.netZakatableAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                           Text(isTr ? 'Mevcut Net Varlık' : 'Net Worth', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                           Text('₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -177,8 +182,8 @@ class SummaryScreen extends ConsumerWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(isTr ? 'Nisab Sınırı' : 'Nisab Limit', style: const TextStyle(color: Color(0xFFF3A712), fontSize: 12)),
-                              Text('₺${calc.nisabThreshold.toStringAsFixed(0)}', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
+                               Text(isTr ? 'Nisab Sınırı' : 'Nisab Limit', style: const TextStyle(color: Color(0xFFF3A712), fontSize: 12)),
+                               Text('₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
                             ],
                           )
                         ],
@@ -259,7 +264,7 @@ class SummaryScreen extends ConsumerWidget {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('₺${asset.value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                                 Text('₺${formatCurrency(asset.value, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
                                 IconButton(
                                   icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
                                   onPressed: () {
@@ -302,7 +307,7 @@ class SummaryScreen extends ConsumerWidget {
                                 Text(isTr ? 'Toplam Borçlar' : 'Total Debts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black)),
                               ],
                             ),
-                            Text('- ₺${calc.totalDebts.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
+                             Text('- ₺${formatCurrency(calc.totalDebts, appState.language)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
                       ),
@@ -332,7 +337,7 @@ class SummaryScreen extends ConsumerWidget {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('- ₺${asset.value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
+                                   Text('- ₺${formatCurrency(asset.value, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
                                   IconButton(
                                     icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
                                     onPressed: () {

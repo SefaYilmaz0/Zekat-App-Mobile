@@ -6,6 +6,7 @@ import '../../../core/providers/app_state_provider.dart';
 import '../domain/history_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../assets/domain/asset_model.dart';
+import '../../../core/utils/currency_formatter.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -71,7 +72,7 @@ class HistoryScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('${isTr ? "Hesaplanan Tutar:" : "Calculated Amount:"} ₺${currentZakat.toStringAsFixed(2)}', style: TextStyle(color: Colors.grey.shade700)),
+                Text('${isTr ? "Hesaplanan Tutar:" : "Calculated Amount:"} ₺${formatCurrency(currentZakat, appState.language)}', style: TextStyle(color: Colors.grey.shade700)),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -196,7 +197,7 @@ class HistoryScreen extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                            Text('₺${item.amount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFF3A712))),
+                            Text('₺${formatCurrency(item.amount, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFF3A712))),
                           ],
                         ),
                         const SizedBox(height: 16),

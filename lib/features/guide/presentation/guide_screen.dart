@@ -11,16 +11,78 @@ class GuideScreen extends ConsumerStatefulWidget {
 }
 
 class _GuideScreenState extends ConsumerState<GuideScreen> {
-  int _selectedCategoryIndex = 0;
+  void _showGuideDetail(BuildContext context, String title, String content, bool isTr) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20))),
+            IconButton(
+              icon: const Icon(Icons.close_rounded),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...content.split('\n').map((line) {
+                  final trimmed = line.trim();
+                  if (trimmed.startsWith('###')) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 8),
+                      child: Text(
+                        trimmed.replaceFirst('###', '').trim(),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712)),
+                      ),
+                    );
+                  } else if (trimmed.startsWith('*') || trimmed.startsWith('-') || trimmed.startsWith('•')) {
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8, bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('• ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFF3A712))),
+                          Expanded(
+                            child: Text(
+                              trimmed.replaceFirst(RegExp(r'^[\*\-•]\s*'), '').trim(),
+                              style: TextStyle(fontSize: 14, color: Colors.grey.shade800, height: 1.4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else if (trimmed.isEmpty) {
+                    return const SizedBox(height: 8);
+                  } else {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        trimmed,
+                        style: TextStyle(fontSize: 14, color: Colors.grey.shade800, height: 1.5),
+                      ),
+                    );
+                  }
+                }).toList(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
-
-    final categories = isTr 
-        ? ['Tümü', 'Temel Bilgiler', 'Hesaplama'] 
-        : ['All', 'Basics', 'Calculation'];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -30,159 +92,106 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
         title: Text(isTr ? 'Rehber' : 'Guide', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
         centerTitle: true,
       ),
-      body: Column(
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: isTr ? 'Ara...' : 'Search...',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade400),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
+          _buildGuideCard(
+            context,
+            icon: Icons.scale_rounded,
+            title: isTr ? 'Nisab Nedir?' : 'What is Nisab?',
+            description: isTr 
+              ? 'Zenginlik ölçüsü ve zekatın farz olması için gereken asgari tutar hakkında temel bilgiler.'
+              : 'Basic information about the measure of wealth and the minimum amount required for zakat to be obligatory.',
+            content: isTr
+              ? "### Nisab Nedir?\n\nNisab, zekatın farz olması için bir Müslümanın sahip olması gereken asgari zenginlik ölçüsüdür. Temel ihtiyaçlar ve borçlar düşüldükten sonra eldeki varlıkların bu sınıra ulaşması gerekir.\n\n### Nisab Miktarı Ne Kadardır?\n\nHz. Peygamber (s.a.s.) döneminde nisab miktarları şu şekilde belirlenmiştir:\n\n* Altın: 80.18 gram\n* Hayvanlar: 40 koyun/keçi, 30 sığır, 5 deve\n* Tarım Ürünleri: 650 kg\n\n### Yıllanma (Havl-i Havelin)\n\nNisab miktarına ulaşan malın üzerinden bir kameri yıl (354 gün) geçmesi gerekir. Yıl başında ve yıl sonunda nisab miktarı korunuyorsa zekat farz olur."
+              : "### What is Nisab?\n\nNisab is the minimum amount of wealth that a Muslim must possess before they become eligible to pay Zakat. This is calculated after deducting basic needs and debts.\n\n### What is the Nisab Amount?\n\nDuring the time of the Prophet, Nisab was set at:\n\n* Gold: 80.18 grams\n* Animals: 40 sheep/goats, 30 cattle, 5 camels\n* Agriculture: 650 kg\n\n### One Year Rule (Hawl)\n\nYou must hold the Nisab amount of wealth for one full lunar year (354 days) before Zakat becomes due.",
+            isTr: isTr,
           ),
-
-          // Category Chips
-          SizedBox(
-            height: 60,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final isSelected = _selectedCategoryIndex == index;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _selectedCategoryIndex = index;
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFF3A712) : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: isSelected ? null : Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Center(
-                        child: Text(
-                          categories[index],
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.grey.shade600,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+          const SizedBox(height: 16),
+          _buildGuideCard(
+            context,
+            icon: Icons.volunteer_activism_rounded,
+            title: isTr ? 'Zekat Kimlere Verilir?' : 'Who Receives Zakat?',
+            description: isTr
+              ? 'Kur\'an-ı Kerim\'de belirtilen zekat verilebilecek 8 sınıfın detayı.'
+              : 'Detailed explanation of the 8 classes eligible to receive Zakat.',
+            content: isTr
+              ? "### Zekat Kimlere Verilir?\n\nTevbe Suresi 60. ayetine göre zekat şu kişilere verilebilir:\n\n* Fakirler ve Miskinler (ihtiyaç sahipleri)\n* Borçlular (borcunu ödeyemeyenler)\n* Allah yolunda olanlar (ilim talebeleri, hayır işi yapanlar)\n* Yolda kalmış yolcular\n\n### Kimlere Zekat Verilmez?\n\n* Anne, baba, büyükbaba, büyükanne\n* Çocuklar ve torunlar\n* Eşler (birbirine zekat veremez)\n* Zengin kimseler"
+              : "### Who Receives Zakat?\n\nAccording to Surah At-Tawbah (verse 60), Zakat can be given to:\n\n* The poor and needy\n* Debtors in distress\n* Those striving in the way of Allah (students, community helpers)\n* Wayfarers/travelers stranded without funds\n\n### Who Cannot Receive Zakat?\n\n* Parents and grandparents\n* Children and grandchildren\n* Husband or wife (spouses to each other)\n* Wealthy individuals",
+            isTr: isTr,
           ),
-
-          // Guide Cards List
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-              children: [
-                _buildGuideCard(
-                  context,
-                  icon: Icons.scale_rounded,
-                  title: isTr ? 'Zekat Nedir?' : 'What is Zakat?',
-                  description: isTr 
-                    ? 'Zekat, İslam\'ın beş şartından biri olan ve nisap miktarı mala sahip olan Müslümanların, mallarının belirli bir kısmını ihtiyaç sahiplerine vermesidir.'
-                    : 'Zakat is one of the Five Pillars of Islam, a religious obligation to donate a certain portion of wealth to charitable causes.',
-                  isTr: isTr,
-                ),
-                const SizedBox(height: 16),
-                _buildGuideCard(
-                  context,
-                  icon: Icons.account_balance_wallet_rounded,
-                  title: isTr ? 'Nisab Miktarı Nedir?' : 'What is Nisab?',
-                  description: isTr
-                    ? 'Nisab, zekat vermekle yükümlü olmak için dinen belirlenmiş asgari zenginlik ölçüsüdür. Altın için bu miktar 80.18 gramdır.'
-                    : 'Nisab is the minimum amount of wealth a Muslim must possess before they become eligible to pay Zakat. For gold, it is 80.18 grams.',
-                  isTr: isTr,
-                ),
-                const SizedBox(height: 16),
-                _buildGuideCard(
-                  context,
-                  icon: Icons.calculate_rounded,
-                  title: isTr ? 'Nasıl Hesaplanır?' : 'How is it calculated?',
-                  description: isTr
-                    ? 'Zekat, mevcut varlıklarınızdan borçlarınız düşüldükten sonra kalan net varlığın %2.5\'i (1/40) üzerinden hesaplanır.'
-                    : 'Zakat calculation is based on 2.5% (1/40) of your net wealth after deducting your debts from your assets.',
-                  isTr: isTr,
-                ),
-                const SizedBox(height: 16),
-                _buildGuideCard(
-                  context,
-                  icon: Icons.date_range_rounded,
-                  title: isTr ? '1 Yıl Şartı' : 'One Lunar Year Rule',
-                  description: isTr
-                    ? 'Nisab miktarı mala sahip olduktan sonra üzerinden tam bir kameri yıl (354 gün) geçmesi gerekir.'
-                    : 'Once your wealth reaches the Nisab threshold, you must possess it for one full lunar year before Zakat becomes due.',
-                  isTr: isTr,
-                ),
-              ],
-            ),
+          const SizedBox(height: 16),
+          _buildGuideCard(
+            context,
+            icon: Icons.account_balance_wallet_rounded,
+            title: isTr ? 'Hangi Varlıklar Tabidir?' : 'Which Assets are Subject?',
+            description: isTr
+              ? 'Zekata tabi olan altın, nakit, ticaret malları ve diğer varlıklar.'
+              : 'Gold, cash, commercial goods and other assets subject to Zakat.',
+            content: isTr
+              ? "### Zekata Tabi Varlıklar\n\n* Altın ve Gümüş: Süs eşyası dahil nisaba ulaşan altın ve gümüş tabidir.\n* Nakit Para: Bankadaki mevduat, nakit ve döviz birikimleri tabidir.\n* Ticaret Malları: Satış amacıyla elde tutulan her türlü mal tabidir.\n* Hayvanlar: Belirli sayının üzerindeki koyun, keçi, sığır ve develer tabidir.\n* Tarım Ürünleri: Topraktan elde edilen ürünler (Öşür) tabidir."
+              : "### Assets Subject to Zakat\n\n* Gold & Silver: All jewelry and savings meeting Nisab are subject.\n* Cash: Money in bank accounts, cash savings, and foreign currencies.\n* Business Assets: Any goods bought/held for resale or commerce.\n* Livestock: Sheep, goats, cattle, and camels exceeding specific limits.\n* Agriculture: Produce harvested from the earth (Ushr).",
+            isTr: isTr,
+          ),
+          const SizedBox(height: 16),
+          _buildGuideCard(
+            context,
+            icon: Icons.calculate_rounded,
+            title: isTr ? 'Hesaplama Yöntemleri' : 'Calculation Methods',
+            description: isTr
+              ? 'Farklı varlıklar için zekat oranları (%2.5, %10, %5).'
+              : 'Zakat rates for various assets (2.5%, 10%, 5%).',
+            content: isTr
+              ? "### Zekat Oranları\n\n* Nakit, Altın, Ticaret Malları: Net değerin %2.5'i (kırkta biri) verilir.\n* Tarım Ürünleri (Öşür): Masrafsız sulanan ürünlerde %10, yapay/masraflı sulanan ürünlerde %5 verilir.\n* Hayvancılık: Koyun/keçide 40 adette 1 koyun; sığırda 30 adette 1 buzağı verilir.\n\n### Genel Formül\n\n(Toplam Varlıklar - Borçlar) * %2.5 = Ödenecek Zekat"
+              : "### Zakat Rates\n\n* Cash, Gold, Business Goods: 2.5% (1/40) of the net value.\n* Agriculture (Ushr): 10% for naturally watered crops, 5% for artificially irrigated crops.\n* Livestock: 1 sheep per 40 sheep/goats; 1 calf per 30 cattle.\n\n### General Formula\n\n(Total Assets - Debts) * 2.5% = Zakat Due",
+            isTr: isTr,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildGuideCard(BuildContext context, {required IconData icon, required String title, required String description, required bool isTr}) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40, height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3A712).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+  Widget _buildGuideCard(BuildContext context, {required IconData icon, required String title, required String description, required String content, required bool isTr}) {
+    return InkWell(
+      onTap: () => _showGuideDetail(context, title, content, isTr),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3A712).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: const Color(0xFFF3A712), size: 20),
                 ),
-                child: Icon(icon, color: const Color(0xFFF3A712), size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black))),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(description, style: TextStyle(color: Colors.grey.shade600, height: 1.5, fontSize: 13)),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Text(isTr ? 'Okumaya başla' : 'Start reading', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold, fontSize: 12)),
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_forward_rounded, color: Color(0xFFF3A712), size: 16),
-            ],
-          )
-        ],
+                const SizedBox(width: 12),
+                Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black))),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(description, style: TextStyle(color: Colors.grey.shade600, height: 1.5, fontSize: 13)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Text(isTr ? 'Okumaya başla' : 'Start reading', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold, fontSize: 12)),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward_rounded, color: Color(0xFFF3A712), size: 16),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

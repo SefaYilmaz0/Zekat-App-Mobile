@@ -1,58 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/app_state_provider.dart';
 import '../domain/enums.dart';
 
 import '../../features/assets/presentation/widgets/add_asset_dialog.dart';
+import '../../features/summary/presentation/summary_screen.dart';
+import '../../features/guide/presentation/guide_screen.dart';
+import '../../features/history/presentation/history_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 
-class MainLayout extends ConsumerWidget {
-  final Widget child;
-  const MainLayout({super.key, required this.child});
+class MainLayout extends ConsumerStatefulWidget {
+  const MainLayout({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainLayout> createState() => _MainLayoutState();
+}
+
+class _MainLayoutState extends ConsumerState<MainLayout> {
+  late final PageController _pageController;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
 
-    int getCurrentIndex(String location) {
-      if (location.startsWith('/summary')) return 0;
-      if (location.startsWith('/assets')) return 1;
-      if (location.startsWith('/guide')) return 2;
-      if (location.startsWith('/history')) return 3;
-      if (location.startsWith('/settings')) return 4;
-      return 0;
-    }
-
-    final String location = GoRouterState.of(context).uri.toString();
-    final currentIndex = getCurrentIndex(location);
-
     Widget buildNavItem(int index, IconData icon, String label) {
-      final isSelected = currentIndex == index;
+      final isSelected = _currentIndex == index;
       final color = isSelected ? const Color(0xFFF3A712) : Colors.grey.shade400;
       return InkWell(
         onTap: () {
-          switch (index) {
-            case 0: context.go('/summary'); break;
-            case 1: context.go('/guide'); break; // Rehber (Guide)
-            case 2: context.go('/history'); break;
-            case 3: context.go('/settings'); break;
-          }
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color),
-            Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color),
+              Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+            ],
+          ),
         ),
       );
     }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      body: child,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        children: const [
+          SummaryScreen(),
+          GuideScreen(),
+          HistoryScreen(),
+          SettingsScreen(),
+        ],
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: SizedBox(
         height: 64,

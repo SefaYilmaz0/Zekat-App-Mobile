@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../history/domain/history_model.dart';
 import '../../exchange_rates/data/exchange_rate_repository.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
+import '../../calculator/presentation/calculator_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -41,6 +43,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final appState = ref.watch(appStateProvider);
     final notifier = ref.read(appStateProvider.notifier);
     final isTr = appState.language == Language.tr;
+    final settingsBox = Hive.box('settings');
+    final currencyFormat = settingsBox.get('currency_format', defaultValue: 'auto');
+
+    final privacyTitle = isTr ? 'Gizlilik Politikası' : 'Privacy Policy';
+    final privacyContent = isTr
+        ? 'ZekatApp, kullanıcı gizliliğine büyük önem verir. Uygulama tamamen çevrimdışı çalışır ve girdiğiniz hiçbir finansal veya kişisel veri sunucularımıza gönderilmez.\n\nTüm verileriniz yalnızca cihazınızın yerel depolama alanında saklanır. Uygulamayı sildiğinizde veya verileri sıfırladığınızda bu bilgiler kalıcı olarak silinir.'
+        : 'ZakatApp attaches great importance to user privacy. The application works completely offline and no financial or personal data you enter is sent to our servers.\n\nAll your data is stored only in your device\'s local storage. When you delete the app or reset the data, this information is permanently deleted.';
+
+    final termsTitle = isTr ? 'Kullanım Şartları' : 'Terms of Use';
+    final termsContent = isTr
+        ? 'ZekatApp, zekat hesaplamalarınızı kolaylaştırmak amacıyla geliştirilmiş bir araçtır. Uygulama tarafından sağlanan hesaplamalar ve piyasa verileri bilgilendirme amaçlıdır.\n\nZekat ibadetinizi yerine getirirken, güncel altın, gümüş ve döviz fiyatlarını yerel kuyumcunuzdan veya güvenilir kaynaklardan teyit etmeniz önerilir.'
+        : 'ZakatApp is a tool developed to facilitate your zakat calculations. Calculations and market data provided by the application are for informational purposes.\n\nWhen fulfilling your zakat worship, it is recommended that you confirm the current gold, silver, and foreign exchange prices from your local jeweler or reliable sources.';
+
+    final contactTitle = isTr ? 'Bize Ulaşın' : 'Contact Us';
+    final contactContent = isTr
+        ? 'Soru, görüş ve önerileriniz için bizimle iletişime geçebilirsiniz:\n\nE-posta: sefa1986@gmail.com'
+        : 'You can contact us for your questions, comments, and suggestions:\n\nEmail: sefa1986@gmail.com';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -51,7 +70,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         centerTitle: true,
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
         children: [
           // Privacy Banner
           Container(
@@ -64,18 +83,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.lock_rounded, color: Color(0xFFF3A712)),
+                const Icon(Icons.lock_outline_rounded, color: Color(0xFFF3A712)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(isTr ? 'Verileriniz Cihazınızda' : 'Your Data is on Your Device', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                      Text(isTr ? 'Verileriniz Cihazınızda' : 'Your Data is Local', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
                       const SizedBox(height: 4),
                       Text(
                         isTr 
-                          ? 'Uygulama herhangi bir sunucuya veri göndermez. Tüm hesaplamalarınız ve tercihleriniz bu cihazın hafızasında güvenle saklanır.'
-                          : 'The app does not send data to any server. All calculations and preferences are securely stored in this device\'s memory.',
+                          ? 'Uygulama herhangi bir sunucuya veri göndermez. Tüm hesaplamalarınız ve tercihleriniz bu cihazda güvenle saklanır.'
+                          : 'No data is uploaded. All calculations and preferences are securely stored locally on this device.',
                         style: TextStyle(color: Colors.grey.shade600, fontSize: 12, height: 1.5),
                       ),
                     ],
@@ -86,17 +105,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Market Data
+          // Market Data Section
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(isTr ? 'PİYASA VERİSİ' : 'MARKET DATA', style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              Text(isTr ? 'PİYASA VERİSİ' : 'MARKET DATA', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
               Row(
                 children: [
-                  Text(isTr ? 'Son: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}' : 'Last: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                  Text(
+                    isTr 
+                      ? 'Son Güncelleme: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}' 
+                      : 'Last Sync: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}', 
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11)
+                  ),
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, size: 16),
-                    color: Colors.grey.shade500,
+                    color: const Color(0xFFF3A712),
                     onPressed: _fetchRates,
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.only(left: 4),
@@ -109,36 +133,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade100),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: _isLoadingRates 
-              ? const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()))
+              ? const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(color: Color(0xFFF3A712))))
               : Column(
                   children: [
-                    _buildRateRow('GOLD', isTr ? 'Gram Altın (24K)' : 'Gold (24K)', Icons.grid_goldenratio_rounded),
-                    const Divider(height: 1),
-                    _buildRateRow('USD', 'Amerikan Doları', Icons.attach_money_rounded),
-                    const Divider(height: 1),
-                    _buildRateRow('EUR', 'Euro', Icons.euro_rounded),
+                    _buildRateRow('GOLD', isTr ? 'Gram Altın (24K)' : 'Gold (24K)', Icons.grid_goldenratio_rounded, appState.language),
+                    const Divider(height: 1, indent: 56),
+                    _buildRateRow('USD', 'Amerikan Doları (USD)', Icons.attach_money_rounded, appState.language),
+                    const Divider(height: 1, indent: 56),
+                    _buildRateRow('EUR', 'Euro (EUR)', Icons.euro_rounded, appState.language),
                   ],
                 ),
           ),
           const SizedBox(height: 24),
 
-          // Preferences
-          Text(isTr ? 'TERCİHLER' : 'PREFERENCES', style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          // Preferences Section
+          Text(isTr ? 'TERCİHLER VE HESAPLAMA' : 'PREFERENCES & CALCULATION', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade100),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Column(
               children: [
                 ListTile(
-                  title: Text(isTr ? 'Dil' : 'Language'),
+                  leading: const Icon(Icons.language_rounded, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Dil' : 'Language', style: const TextStyle(fontWeight: FontWeight.w500)),
                   trailing: DropdownButton<Language>(
                     value: appState.language,
                     underline: const SizedBox(),
@@ -149,16 +176,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onChanged: (val) { if(val != null) notifier.setLanguage(val); },
                   ),
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, indent: 56),
                 SwitchListTile(
-                  title: Text(isTr ? 'Karanlık Mod' : 'Dark Mode'),
+                  secondary: const Icon(Icons.dark_mode_outlined, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Karanlık Mod' : 'Dark Mode', style: const TextStyle(fontWeight: FontWeight.w500)),
                   value: appState.isDark,
                   activeColor: const Color(0xFFF3A712),
                   onChanged: (val) => notifier.toggleTheme(),
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, indent: 56),
                 ListTile(
-                  title: Text(isTr ? 'Mezhep' : 'Sect'),
+                  leading: const Icon(Icons.bookmark_border_rounded, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Mezhep' : 'Sect', style: const TextStyle(fontWeight: FontWeight.w500)),
                   trailing: DropdownButton<Sect>(
                     value: appState.sect,
                     underline: const SizedBox(),
@@ -166,9 +195,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onChanged: (val) { if(val != null) notifier.setSect(val); },
                   ),
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, indent: 56),
                 ListTile(
-                  title: Text(isTr ? 'Para Birimi' : 'Currency'),
+                  leading: const Icon(Icons.monetization_on_outlined, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Para Birimi' : 'Currency', style: const TextStyle(fontWeight: FontWeight.w500)),
                   trailing: DropdownButton<AppCurrency>(
                     value: appState.currency,
                     underline: const SizedBox(),
@@ -176,25 +206,49 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onChanged: (val) { if(val != null) notifier.setCurrency(val); },
                   ),
                 ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: const Icon(Icons.pin_outlined, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Sayı ve Para Formatı' : 'Number & Currency Format', style: const TextStyle(fontWeight: FontWeight.w500)),
+                  trailing: DropdownButton<String>(
+                    value: currencyFormat,
+                    underline: const SizedBox(),
+                    items: [
+                      DropdownMenuItem(value: 'auto', child: Text(isTr ? 'Otomatik' : 'Auto')),
+                      const DropdownMenuItem(value: 'tr', child: Text('1.234.567,89')),
+                      const DropdownMenuItem(value: 'us', child: Text('1,234,567.89')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          settingsBox.put('currency_format', val);
+                        });
+                        ref.invalidate(calculatorProvider);
+                      }
+                    },
+                  ),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 24),
 
-          // App & Data Management
-          Text(isTr ? 'UYGULAMA VE VERİ YÖNETİMİ' : 'APP & DATA MANAGEMENT', style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          // Legal & Info Section
+          Text(isTr ? 'UYGULAMA BİLGİLERİ VE DESTEK' : 'APP INFO & SUPPORT', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade100),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.add_to_home_screen_rounded),
-                  title: Text(isTr ? 'Ana Ekrana Ekle' : 'Add to Home Screen'),
+                  leading: const Icon(Icons.add_to_home_screen_rounded, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Ana Ekrana Ekle' : 'Add to Home Screen', style: const TextStyle(fontWeight: FontWeight.w500)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
                   onTap: () {
                     _showInfoDialog(
                       context,
@@ -205,67 +259,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     );
                   },
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: const Icon(Icons.verified_user_outlined, color: Color(0xFFF3A712)),
+                  title: Text(privacyTitle, style: const TextStyle(fontWeight: FontWeight.w500)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                  onTap: () => _showInfoDialog(context, privacyTitle, privacyContent),
+                ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: const Icon(Icons.description_outlined, color: Color(0xFFF3A712)),
+                  title: Text(termsTitle, style: const TextStyle(fontWeight: FontWeight.w500)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                  onTap: () => _showInfoDialog(context, termsTitle, termsContent),
+                ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: const Icon(Icons.mail_outline_rounded, color: Color(0xFFF3A712)),
+                  title: Text(contactTitle, style: const TextStyle(fontWeight: FontWeight.w500)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                  onTap: () => _showInfoDialog(context, contactTitle, contactContent),
+                ),
+                const Divider(height: 1, indent: 56),
                 ListTile(
                   leading: const Icon(Icons.delete_forever_rounded, color: Colors.red),
-                  title: Text(isTr ? 'Tüm Verileri Sıfırla' : 'Reset All Data', style: const TextStyle(color: Colors.red)),
+                  title: Text(isTr ? 'Tüm Verileri Sıfırla' : 'Reset All Data', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.red),
                   onTap: () => _showResetDialog(context, ref, isTr),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
 
-          // Footer
+          // Footer info
           Center(
             child: Column(
               children: [
-                const Icon(Icons.calculate_rounded, color: Color(0xFFF3A712), size: 48),
-                const SizedBox(height: 16),
-                Text('ZekatApp Versiyon 1.0.1 (Offline)', style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Builder(
-                  builder: (context) {
-                    final privacyTitle = isTr ? 'Gizlilik Politikası' : 'Privacy Policy';
-                    final privacyContent = isTr
-                        ? 'ZekatApp, kullanıcı gizliliğine büyük önem verir. Uygulama tamamen çevrimdışı çalışır ve girdiğiniz hiçbir finansal veya kişisel veri sunucularımıza gönderilmez.\n\nTüm verileriniz yalnızca cihazınızın yerel depolama alanında saklanır. Uygulamayı sildiğinizde veya verileri sıfırladığınızda bu bilgiler kalıcı olarak silinir.'
-                        : 'ZakatApp attaches great importance to user privacy. The application works completely offline and no financial or personal data you enter is sent to our servers.\n\nAll your data is stored only in your device\'s local storage. When you delete the app or reset the data, this information is permanently deleted.';
-
-                    final termsTitle = isTr ? 'Kullanım Şartları' : 'Terms of Use';
-                    final termsContent = isTr
-                        ? 'ZekatApp, zekat hesaplamalarınızı kolaylaştırmak amacıyla geliştirilmiş bir araçtır. Uygulama tarafından sağlanan hesaplamalar ve piyasa verileri bilgilendirme amaçlıdır.\n\nZekat ibadetinizi yerine getirirken, güncel altın, gümüş ve döviz fiyatlarını yerel kuyumcunuzdan veya kaynaklardan teyit etmeniz önerilir.'
-                        : 'ZakatApp is a tool developed to facilitate your zakat calculations. Calculations and market data provided by the application are for informational purposes.\n\nWhen fulfilling your zakat worship, it is recommended that you confirm the current gold, silver, and foreign exchange prices from your local jeweler or reliable sources.';
-
-                    final contactTitle = isTr ? 'Bize Ulaşın' : 'Contact Us';
-                    final contactContent = isTr
-                        ? 'Soru, görüş ve önerileriniz için bizimle iletişime geçebilirsiniz:\n\nE-posta: sefa1986@gmail.com'
-                        : 'You can contact us for your questions, comments, and suggestions:\n\nEmail: sefa1986@gmail.com';
-
-                    return Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () => _showInfoDialog(context, privacyTitle, privacyContent),
-                              child: Text(isTr ? 'Gizlilik Politikası' : 'Privacy Policy', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
-                            ),
-                            const SizedBox(width: 16),
-                            InkWell(
-                              onTap: () => _showInfoDialog(context, termsTitle, termsContent),
-                              child: Text(isTr ? 'Kullanım Koşulları' : 'Terms of Use', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          onTap: () => _showInfoDialog(context, contactTitle, contactContent),
-                          child: Text(isTr ? 'İletişim' : 'Contact Us', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
-                        ),
-                      ],
-                    );
-                  }
-                ),
+                const Icon(Icons.calculate_rounded, color: Color(0xFFF3A712), size: 40),
+                const SizedBox(height: 12),
+                Text('ZekatApp v1.0.1 (Offline)', style: TextStyle(color: Colors.grey.shade400, fontSize: 12, fontWeight: FontWeight.w500)),
               ],
             ),
           )
@@ -274,7 +307,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildRateRow(String code, String name, IconData icon) {
+  Widget _buildRateRow(String code, String name, IconData icon, Language lang) {
     final rate = _rates.firstWhere((r) => r.currencyCode == code, orElse: () => ExchangeRateModel(currencyCode: code, currencyName: name, buyingPrice: 0, sellingPrice: 0, lastUpdate: DateTime.now()));
     
     Color iconColor;
@@ -296,8 +329,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
         child: Icon(icon, color: iconColor, size: 20),
       ),
-      title: Text(name, style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
-      trailing: Text('₺${rate.buyingPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+      title: Text(name, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w500, fontSize: 14)),
+      trailing: Text('₺${formatCurrency(rate.buyingPrice, lang)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
     );
   }
 
@@ -306,9 +339,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(child: Text(content, style: const TextStyle(height: 1.5))),
+          content: SingleChildScrollView(child: Text(content, style: const TextStyle(height: 1.5, fontSize: 14))),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -325,8 +359,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(isTr ? 'Dikkat!' : 'Warning!', style: const TextStyle(color: Colors.red)),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(isTr ? 'Dikkat!' : 'Warning!', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           content: Text(isTr 
             ? 'Tüm varlıklarınız ve geçmiş kayıtlarınız silinecek ve başlangıç ekranına döneceksiniz. Bu işlem geri alınamaz.\n\nEmin misiniz?'
             : 'All your assets and history will be deleted and you will return to the start screen. This cannot be undone.\n\nAre you sure?'),
@@ -339,7 +374,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red, 
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () async {
                 final assetsBox = Hive.box<AssetModel>('assets');

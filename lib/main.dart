@@ -35,6 +35,7 @@ void main() async {
   await Hive.openBox<AppState>('appState');
   await Hive.openBox<AssetModel>('assets');
   await Hive.openBox<HistoryModel>('history');
+  await Hive.openBox('settings');
 
   runApp(const ProviderScope(child: ZekatApp()));
 }
@@ -74,33 +75,9 @@ class ZekatApp extends ConsumerWidget {
           path: '/sect-select',
           builder: (context, state) => const SectSelectionScreen(),
         ),
-        ShellRoute(
-          navigatorKey: _shellNavigatorKey,
-          builder: (context, state, child) {
-            return MainLayout(child: child);
-          },
-          routes: [
-            GoRoute(
-              path: '/summary',
-              builder: (context, state) => const SummaryScreen(),
-            ),
-            GoRoute(
-              path: '/assets',
-              builder: (context, state) => const AssetsScreen(),
-            ),
-            GoRoute(
-              path: '/guide',
-              builder: (context, state) => const GuideScreen(),
-            ),
-            GoRoute(
-              path: '/history',
-              builder: (context, state) => const HistoryScreen(),
-            ),
-            GoRoute(
-              path: '/settings',
-              builder: (context, state) => const SettingsScreen(),
-            ),
-          ],
+        GoRoute(
+          path: '/summary',
+          builder: (context, state) => const MainLayout(),
         ),
       ],
     );
