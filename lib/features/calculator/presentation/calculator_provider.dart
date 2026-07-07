@@ -79,7 +79,20 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
 
   double zakatToPay = 0;
   if (isNisabReached) {
-    zakatToPay = netZakatableAmount * 0.025; // 2.5%
+    double tempZakat = 0;
+    for (var asset in assets) {
+      if (asset.category == AssetCategory.debt) continue;
+      
+      if (asset.category == AssetCategory.agriculture) {
+        final irrigation = asset.details?['irrigationType'] ?? 'natural';
+        final rate = irrigation == 'natural' ? 0.10 : 0.05;
+        tempZakat += asset.value * rate;
+      } else {
+        tempZakat += asset.value * 0.025;
+      }
+    }
+    tempZakat -= totalDebts * 0.025;
+    zakatToPay = tempZakat < 0.0 ? 0.0 : tempZakat;
   }
 
   return AsyncValue.data(CalculationResult(
