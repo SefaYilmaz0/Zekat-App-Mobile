@@ -8,6 +8,7 @@ import '../../features/summary/presentation/summary_screen.dart';
 import '../../features/guide/presentation/guide_screen.dart';
 import '../../features/history/presentation/history_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../core/theme.dart';
 
 import '../utils/version_check_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -46,16 +47,16 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
       context: context,
       barrierDismissible: !result.isForce,
       builder: (context) {
-        return WillPopScope(
-          onWillPop: () async => !result.isForce,
+        return PopScope(
+          canPop: !result.isForce,
           child: AlertDialog(
-            backgroundColor: Colors.white,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(
               children: [
-                const Icon(Icons.system_update_rounded, color: Color(0xFFF3A712), size: 28),
+                Icon(Icons.system_update_rounded, color: Theme.of(context).primaryColor, size: 28),
                 const SizedBox(width: 12),
-                Text(isTr ? 'Güncelleme Mevcut' : 'Update Available', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(isTr ? 'Güncelleme Mevcut' : 'Update Available', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
               ],
             ),
             content: Text(isTr ? result.messageTr : result.messageEn, style: const TextStyle(fontSize: 14, height: 1.4)),
@@ -67,14 +68,25 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
                 ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF3A712),
+                  backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: () async {
                   final uri = Uri.parse(result.updateUrl);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  try {
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    } else {
+                      // Fallback: Just try launching anyway, or show error.
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(isTr ? 'Bağlantı açılamadı.' : 'Could not open link.')),
+                      );
+                    }
                   }
                 },
                 child: Text(isTr ? 'Şimdi Güncelle' : 'Update Now', style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -99,31 +111,34 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
 
     Widget buildNavItem(int index, IconData icon, String label) {
       final isSelected = _currentIndex == index;
-      final color = isSelected ? const Color(0xFFF3A712) : Colors.grey.shade400;
-      return InkWell(
-        onTap: () {
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color),
-              Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-            ],
+      final color = isSelected ? Theme.of(context).primaryColor : Colors.grey.shade500;
+      return Expanded(
+        child: InkWell(
+          onTap: () {
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 26),
+                const SizedBox(height: 2),
+                Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
+              ],
+            ),
           ),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
@@ -143,7 +158,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
         height: 64,
         width: 64,
         child: FloatingActionButton(
-          backgroundColor: const Color(0xFFF3A712),
+          backgroundColor: Theme.of(context).primaryColor,
           foregroundColor: Colors.white,
           elevation: 8,
           shape: const CircleBorder(),
@@ -156,7 +171,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
-        color: Colors.white,
+        color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
         elevation: 16,
         shadowColor: Colors.black45,
         child: Row(
@@ -164,7 +179,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
           children: [
             buildNavItem(0, Icons.calculate_rounded, isTr ? 'Özet' : 'Summary'),
             buildNavItem(1, Icons.menu_book_rounded, isTr ? 'Rehber' : 'Guide'),
-            const SizedBox(width: 48), // Space for FAB
+            const SizedBox(width: 56), // Space for FAB
             buildNavItem(2, Icons.history_rounded, isTr ? 'Geçmiş' : 'History'),
             buildNavItem(3, Icons.settings_rounded, isTr ? 'Ayarlar' : 'Settings'),
           ],

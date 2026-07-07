@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../assets/presentation/widgets/add_asset_dialog.dart';
+import '../../../core/theme.dart';
 
 class GridPatternPainter extends CustomPainter {
   @override
@@ -27,9 +28,14 @@ class GridPatternPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class SummaryScreen extends ConsumerWidget {
+class SummaryScreen extends ConsumerStatefulWidget {
   const SummaryScreen({super.key});
 
+  @override
+  ConsumerState<SummaryScreen> createState() => _SummaryScreenState();
+}
+
+class _SummaryScreenState extends ConsumerState<SummaryScreen> {
   IconData _getIconForCategory(AssetCategory category) {
     switch (category) {
       case AssetCategory.gold: return Icons.grid_goldenratio_rounded;
@@ -41,8 +47,27 @@ class SummaryScreen extends ConsumerWidget {
     }
   }
 
+  void _deleteAsset(BuildContext context, AssetModel asset, bool isTr) {
+    final box = Hive.box<AssetModel>('assets');
+    box.delete(asset.id);
+    
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(isTr ? '${asset.name} silindi' : '${asset.name} deleted'),
+        action: SnackBarAction(
+          label: isTr ? 'Geri Al' : 'Undo',
+          onPressed: () {
+            box.put(asset.id, asset);
+          },
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
     final calcAsync = ref.watch(calculatorProvider);
@@ -50,11 +75,11 @@ class SummaryScreen extends ConsumerWidget {
     final assetsAsync = ref.watch(assetsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: Text(isTr ? 'Özet' : 'Summary', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
+        title: Text(isTr ? 'Özet' : 'Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).textTheme.displayLarge?.color)),
         centerTitle: true,
         actions: [
           if (calc != null)
@@ -153,8 +178,9 @@ class SummaryScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
                     boxShadow: [
                       BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
                     ],
@@ -165,7 +191,7 @@ class SummaryScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                            Text(isTr ? 'Mevcut Net Varlık' : 'Net Worth', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                           Text('₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                           Text('₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -199,7 +225,7 @@ class SummaryScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(isTr ? 'Varlıklarım' : 'My Assets', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                    Text(isTr ? 'Varlıklarım' : 'My Assets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.displayLarge?.color)),
                     TextButton.icon(
                       onPressed: () {
                         showDialog(context: context, builder: (context) => const AddAssetDialog());
@@ -219,8 +245,9 @@ class SummaryScreen extends ConsumerWidget {
                 // Assets List Card
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
                   child: myAssets.isEmpty
@@ -266,13 +293,10 @@ class SummaryScreen extends ConsumerWidget {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                 Text('₺${formatCurrency(asset.value, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                             Text('₺${formatCurrency(asset.value, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                                 IconButton(
                                   icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
-                                  onPressed: () {
-                                    final box = Hive.box<AssetModel>('assets');
-                                    box.delete(asset.id);
-                                  },
+                                  onPressed: () => _deleteAsset(context, asset, isTr),
                                 ),
                               ],
                             ),
@@ -285,8 +309,9 @@ class SummaryScreen extends ConsumerWidget {
                 // Debts Card
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
                   child: Column(
@@ -294,7 +319,7 @@ class SummaryScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2), // Light red background
+                          color: appState.isDark ? const Color(0xFF3F1C1C) : const Color(0xFFFEF2F2),
                           borderRadius: myDebts.isEmpty 
                             ? BorderRadius.circular(16)
                             : const BorderRadius.vertical(top: Radius.circular(16)),
@@ -306,7 +331,7 @@ class SummaryScreen extends ConsumerWidget {
                               children: [
                                 const Icon(Icons.money_off_rounded, color: Colors.red, size: 20),
                                 const SizedBox(width: 8),
-                                Text(isTr ? 'Toplam Borçlar' : 'Total Debts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black)),
+                                Text(isTr ? 'Toplam Borçlar' : 'Total Debts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).textTheme.bodyLarge?.color)),
                               ],
                             ),
                              Text('- ₺${formatCurrency(calc.totalDebts, appState.language)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
@@ -340,12 +365,9 @@ class SummaryScreen extends ConsumerWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                    Text('- ₺${formatCurrency(asset.value, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
-                                  IconButton(
+                                IconButton(
                                     icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
-                                    onPressed: () {
-                                      final box = Hive.box<AssetModel>('assets');
-                                      box.delete(asset.id);
-                                    },
+                                    onPressed: () => _deleteAsset(context, asset, isTr),
                                   ),
                                 ],
                               ),
@@ -359,16 +381,25 @@ class SummaryScreen extends ConsumerWidget {
 
                 // Info Footer Card
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFFF3A712),
+                        Color(0xFFD97706),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(color: const Color(0xFFD97706).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+                    ],
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.info, color: Color(0xFFF3A712)),
+                      const Icon(Icons.info, color: Colors.white),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(

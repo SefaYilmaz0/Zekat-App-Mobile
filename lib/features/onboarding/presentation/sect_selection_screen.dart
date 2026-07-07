@@ -59,14 +59,10 @@ class SectSelectionScreen extends ConsumerWidget {
             children: [
               // Header
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    isTr ? 'ADIM 2 / 3' : 'STEP 2 OF 3',
+                    isTr ? 'ADIM 2 / 2' : 'STEP 2 OF 2',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -84,8 +80,6 @@ class SectSelectionScreen extends ConsumerWidget {
                   Container(width: 32, height: 6, decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(3))),
                   const SizedBox(width: 4),
                   Container(width: 32, height: 6, decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(3))),
-                  const SizedBox(width: 4),
-                  Container(width: 32, height: 6, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(3))),
                 ],
               ),
               const SizedBox(height: 16),

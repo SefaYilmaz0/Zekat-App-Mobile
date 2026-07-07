@@ -10,6 +10,7 @@ import '../../history/domain/history_model.dart';
 import '../../exchange_rates/data/exchange_rate_repository.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
+import '../../../core/theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -62,11 +63,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         : 'You can contact us for your questions, comments, and suggestions:\n\nEmail: sefa1986@gmail.com';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: Text(isTr ? 'Ayarlar' : 'Settings', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
+        title: Text(isTr ? 'Ayarlar' : 'Settings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).textTheme.displayLarge?.color)),
         centerTitle: true,
       ),
       body: ListView(
@@ -114,13 +115,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   Text(
                     isTr 
-                      ? 'Son Güncelleme: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}' 
-                      : 'Last Sync: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}', 
+                      ? 'Son Güncelleme: ${_rates.isNotEmpty ? "${_rates.first.lastUpdate.hour.toString().padLeft(2, '0')}:${_rates.first.lastUpdate.minute.toString().padLeft(2, '0')}" : "--:--"}' 
+                      : 'Last Sync: ${_rates.isNotEmpty ? "${_rates.first.lastUpdate.hour.toString().padLeft(2, '0')}:${_rates.first.lastUpdate.minute.toString().padLeft(2, '0')}" : "--:--"}', 
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 11)
                   ),
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, size: 16),
-                    color: const Color(0xFFF3A712),
+                    color: Theme.of(context).primaryColor,
                     onPressed: _fetchRates,
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.only(left: 4),
@@ -132,9 +133,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey.shade100),
+              border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade100),
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: _isLoadingRates 
@@ -156,9 +157,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey.shade100),
+              border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade100),
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Column(
@@ -238,28 +239,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey.shade100),
+              border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade100),
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.add_to_home_screen_rounded, color: Color(0xFFF3A712)),
-                  title: Text(isTr ? 'Ana Ekrana Ekle' : 'Add to Home Screen', style: const TextStyle(fontWeight: FontWeight.w500)),
-                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                  onTap: () {
-                    _showInfoDialog(
-                      context,
-                      isTr ? 'Uygulama Bilgisi' : 'App Info',
-                      isTr
-                          ? 'Bu uygulama zaten yerel bir mobil uygulama olarak çalışmaktadır. Ana ekrana ekleme işlemi web sürümleri için geçerlidir.'
-                          : 'This application is already running as a native mobile app. Adding to the home screen applies to web versions.',
-                    );
-                  },
-                ),
-                const Divider(height: 1, indent: 56),
                 ListTile(
                   leading: const Icon(Icons.verified_user_outlined, color: Color(0xFFF3A712)),
                   title: Text(privacyTitle, style: const TextStyle(fontWeight: FontWeight.w500)),
@@ -335,18 +321,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showInfoDialog(BuildContext context, String title, String content) {
+    final isTr = ref.read(appStateProvider).language == Language.tr;
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(child: Text(content, style: const TextStyle(height: 1.5, fontSize: 14))),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Kapat', style: TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
+              child: Text(isTr ? 'Kapat' : 'Close', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -387,7 +374,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                 if (context.mounted) {
                   Navigator.pop(context);
-                  context.go('/welcome');
+                  context.go('/');
                 }
               },
               child: Text(isTr ? 'Evet, Sıfırla' : 'Yes, Reset'),

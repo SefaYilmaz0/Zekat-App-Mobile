@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
+import '../../../core/theme.dart';
 
 class GuideScreen extends ConsumerStatefulWidget {
   const GuideScreen({super.key});
@@ -15,14 +16,14 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20))),
+            Expanded(child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Theme.of(context).textTheme.bodyLarge?.color))),
             IconButton(
-              icon: const Icon(Icons.close_rounded),
+              icon: Icon(Icons.close_rounded, color: Theme.of(context).iconTheme.color),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -40,7 +41,7 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
                       padding: const EdgeInsets.only(top: 16, bottom: 8),
                       child: Text(
                         trimmed.replaceFirst('###', '').trim(),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712)),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).primaryColor),
                       ),
                     );
                   } else if (trimmed.startsWith('*') || trimmed.startsWith('-') || trimmed.startsWith('•')) {
@@ -49,11 +50,11 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('• ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFF3A712))),
+                          Text('• ', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
                           Expanded(
                             child: Text(
                               trimmed.replaceFirst(RegExp(r'^[\*\-•]\s*'), '').trim(),
-                              style: TextStyle(fontSize: 14, color: Colors.grey.shade800, height: 1.4),
+                              style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color, height: 1.4),
                             ),
                           ),
                         ],
@@ -66,7 +67,7 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         trimmed,
-                        style: TextStyle(fontSize: 14, color: Colors.grey.shade800, height: 1.5),
+                        style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium?.color, height: 1.5),
                       ),
                     );
                   }
@@ -85,11 +86,11 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
     final isTr = appState.language == Language.tr;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: Text(isTr ? 'Rehber' : 'Guide', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
+        title: Text(isTr ? 'Rehber' : 'Guide', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).textTheme.displayLarge?.color)),
         centerTitle: true,
       ),
       body: ListView(
@@ -152,16 +153,17 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
   }
 
   Widget _buildGuideCard(BuildContext context, {required IconData icon, required String title, required String description, required String content, required bool isTr}) {
+    final appState = ref.read(appStateProvider);
     return InkWell(
       onTap: () => _showGuideDetail(context, title, content, isTr),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade100),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,13 +173,13 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
                 Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF3A712).withOpacity(0.1),
+                    color: Theme.of(context).primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, color: const Color(0xFFF3A712), size: 20),
+                  child: Icon(icon, color: Theme.of(context).primaryColor, size: 20),
                 ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black))),
+                Expanded(child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color))),
               ],
             ),
             const SizedBox(height: 16),
@@ -185,9 +187,9 @@ class _GuideScreenState extends ConsumerState<GuideScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Text(isTr ? 'Okumaya başla' : 'Start reading', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold, fontSize: 12)),
+                Text(isTr ? 'Okumaya başla' : 'Start reading', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 12)),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward_rounded, color: Color(0xFFF3A712), size: 16),
+                Icon(Icons.arrow_forward_rounded, color: Theme.of(context).primaryColor, size: 16),
               ],
             )
           ],

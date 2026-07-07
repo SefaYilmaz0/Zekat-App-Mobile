@@ -101,7 +101,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade200),
                   boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))],
@@ -584,7 +584,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
                   if (_formKey.currentState!.validate()) {
                     final asset = AssetModel(
                       id: const Uuid().v4(),
-                      name: '$_livestockType (Hayvan)',
+                      name: '$_livestockType ${isTr ? '(Hayvan)' : '(Livestock)'}',
                       category: AssetCategory.livestock,
                       value: totalValue,
                       details: {
@@ -730,7 +730,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
                   if (_formKey.currentState!.validate()) {
                     final asset = AssetModel(
                       id: const Uuid().v4(),
-                      name: '${_agricultureNameController.text} (Tarım)',
+                      name: '${_agricultureNameController.text} ${isTr ? '(Tarım)' : '(Agriculture)'}',
                       category: AssetCategory.agriculture,
                       value: amount,
                       details: {
@@ -778,7 +778,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
     final isTr = appState.language == Language.tr;
 
     return Dialog(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: SingleChildScrollView(
         child: Padding(

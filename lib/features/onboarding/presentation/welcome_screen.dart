@@ -166,7 +166,7 @@ class WelcomeScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1C1917),
+                          color: Theme.of(context).textTheme.displayLarge?.color,
                           height: 1.2,
                         ),
                         children: [
@@ -206,8 +206,6 @@ class WelcomeScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(width: 24, height: 6, decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(3))),
-                      const SizedBox(width: 8),
-                      Container(width: 6, height: 6, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(3))),
                       const SizedBox(width: 8),
                       Container(width: 6, height: 6, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(3))),
                     ],

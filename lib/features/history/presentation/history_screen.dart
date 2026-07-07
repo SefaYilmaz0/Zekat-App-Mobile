@@ -7,6 +7,8 @@ import '../domain/history_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/theme.dart';
+import 'package:intl/intl.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -19,11 +21,11 @@ class HistoryScreen extends ConsumerWidget {
     final currentZakat = calcAsync.value?.zakatToPay ?? 0.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: Text(isTr ? 'Geçmiş' : 'History', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
+        title: Text(isTr ? 'Geçmiş' : 'History', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).textTheme.displayLarge?.color)),
         centerTitle: true,
       ),
       body: ListView(
@@ -44,8 +46,9 @@ class HistoryScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Column(
@@ -57,8 +60,8 @@ class HistoryScreen extends ConsumerWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Ramazan 1445', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
-                        Text('Temmuz 2026', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                        Text(isTr ? 'Dönem Zekatı' : 'Period Zakat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                        Text(DateFormat('MMMM yyyy', isTr ? 'tr_TR' : 'en_US').format(DateTime.now()), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                       ],
                     ),
                     Container(
@@ -80,12 +83,30 @@ class HistoryScreen extends ConsumerWidget {
                     onPressed: currentZakat <= 0.0
                         ? null
                         : () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: Theme.of(context).colorScheme.surface,
+                                title: Text(isTr ? 'Ödeme Onayı' : 'Payment Confirmation', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                content: Text(isTr
+                                    ? 'Zekat ödemenizi kaydetmek ve tüm varlıkları sıfırlamak istiyor musunuz?'
+                                    : 'Do you want to record your zakat payment and reset all assets?', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(ctx, false),
+                                      child: Text(isTr ? 'İptal' : 'Cancel', style: const TextStyle(color: Colors.grey))),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: Text(isTr ? 'Evet, Öde' : 'Yes, Pay'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm != true) return;
+
                             final today = DateTime.now();
                             final periodName = isTr ? 'Zekat Ödemesi' : 'Zakat Payment';
-                            final months = isTr
-                                ? ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
-                                : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                            final gregorian = '${months[today.month - 1]} ${today.year}';
+                            final gregorian = DateFormat('MMMM yyyy', isTr ? 'tr_TR' : 'en_US').format(today);
 
                             final assetsBox = Hive.box<AssetModel>('assets');
                             final currentAssets = assetsBox.values.toList();
@@ -119,9 +140,9 @@ class HistoryScreen extends ConsumerWidget {
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF3A712),
+                      backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledBackgroundColor: appState.isDark ? Colors.grey.shade800 : Colors.grey.shade300,
                       disabledForegroundColor: Colors.grey.shade500,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -167,8 +188,9 @@ class HistoryScreen extends ConsumerWidget {
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
                       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
                     ),
                     child: Column(
@@ -191,13 +213,13 @@ class HistoryScreen extends ConsumerWidget {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(item.period, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                                    Text(item.period, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                                     Text(item.gregorian, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                                   ],
                                 ),
                               ],
                             ),
-                            Text('₺${formatCurrency(item.amount, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFF3A712))),
+                            Text('₺${formatCurrency(item.amount, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).primaryColor)),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -205,7 +227,7 @@ class HistoryScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('${item.assetCount} ${isTr ? "Varlık Kalemi" : "Asset Items"}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                            Text(item.date.split('T').first, style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                            Text(DateFormat('dd/MM/yyyy').format(DateTime.parse(item.date)), style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
                           ],
                         )
                       ],
