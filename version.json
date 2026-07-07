@@ -1,0 +1,8 @@
+{
+  "min_version_code": 14,
+  "latest_version_code": 14,
+  "force_update": true,
+  "update_url": "https://github.com/SefaYilmaz0/Zekat-App-Mobile/releases",
+  "message_tr": "Uygulamanın yeni bir sürümü mevcut. Devam etmek için lütfen şimdi güncelleyin.",
+  "message_en": "A new version of the app is available. Please update now to continue."
+}
