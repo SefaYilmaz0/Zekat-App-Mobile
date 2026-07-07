@@ -13,11 +13,6 @@ import 'features/history/domain/history_model.dart';
 
 import 'features/onboarding/presentation/welcome_screen.dart';
 import 'features/onboarding/presentation/sect_selection_screen.dart';
-import 'features/summary/presentation/summary_screen.dart';
-import 'features/assets/presentation/assets_screen.dart';
-import 'features/history/presentation/history_screen.dart';
-import 'features/guide/presentation/guide_screen.dart';
-import 'features/settings/presentation/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +36,6 @@ void main() async {
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 class ZekatApp extends ConsumerWidget {
   const ZekatApp({super.key});
