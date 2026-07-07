@@ -195,7 +195,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.add_to_home_screen_rounded),
                   title: Text(isTr ? 'Ana Ekrana Ekle' : 'Add to Home Screen'),
-                  onTap: () {},
+                  onTap: () {
+                    _showInfoDialog(
+                      context,
+                      isTr ? 'Uygulama Bilgisi' : 'App Info',
+                      isTr
+                          ? 'Bu uygulama zaten yerel bir mobil uygulama olarak çalışmaktadır. Ana ekrana ekleme işlemi web sürümleri için geçerlidir.'
+                          : 'This application is already running as a native mobile app. Adding to the home screen applies to web versions.',
+                    );
+                  },
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -216,16 +224,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 16),
                 Text('ZekatApp Versiyon 1.0.1 (Offline)', style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(isTr ? 'Gizlilik Politikası' : 'Privacy Policy', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
-                    const SizedBox(width: 16),
-                    Text(isTr ? 'Kullanım Koşulları' : 'Terms of Use', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
-                  ],
+                Builder(
+                  builder: (context) {
+                    final privacyTitle = isTr ? 'Gizlilik Politikası' : 'Privacy Policy';
+                    final privacyContent = isTr
+                        ? 'ZekatApp, kullanıcı gizliliğine büyük önem verir. Uygulama tamamen çevrimdışı çalışır ve girdiğiniz hiçbir finansal veya kişisel veri sunucularımıza gönderilmez.\n\nTüm verileriniz yalnızca cihazınızın yerel depolama alanında saklanır. Uygulamayı sildiğinizde veya verileri sıfırladığınızda bu bilgiler kalıcı olarak silinir.'
+                        : 'ZakatApp attaches great importance to user privacy. The application works completely offline and no financial or personal data you enter is sent to our servers.\n\nAll your data is stored only in your device\'s local storage. When you delete the app or reset the data, this information is permanently deleted.';
+
+                    final termsTitle = isTr ? 'Kullanım Şartları' : 'Terms of Use';
+                    final termsContent = isTr
+                        ? 'ZekatApp, zekat hesaplamalarınızı kolaylaştırmak amacıyla geliştirilmiş bir araçtır. Uygulama tarafından sağlanan hesaplamalar ve piyasa verileri bilgilendirme amaçlıdır.\n\nZekat ibadetinizi yerine getirirken, güncel altın, gümüş ve döviz fiyatlarını yerel kuyumcunuzdan veya kaynaklardan teyit etmeniz önerilir.'
+                        : 'ZakatApp is a tool developed to facilitate your zakat calculations. Calculations and market data provided by the application are for informational purposes.\n\nWhen fulfilling your zakat worship, it is recommended that you confirm the current gold, silver, and foreign exchange prices from your local jeweler or reliable sources.';
+
+                    final contactTitle = isTr ? 'Bize Ulaşın' : 'Contact Us';
+                    final contactContent = isTr
+                        ? 'Soru, görüş ve önerileriniz için bizimle iletişime geçebilirsiniz:\n\nE-posta: sefa1986@gmail.com'
+                        : 'You can contact us for your questions, comments, and suggestions:\n\nEmail: sefa1986@gmail.com';
+
+                    return Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              onTap: () => _showInfoDialog(context, privacyTitle, privacyContent),
+                              child: Text(isTr ? 'Gizlilik Politikası' : 'Privacy Policy', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
+                            ),
+                            const SizedBox(width: 16),
+                            InkWell(
+                              onTap: () => _showInfoDialog(context, termsTitle, termsContent),
+                              child: Text(isTr ? 'Kullanım Koşulları' : 'Terms of Use', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        InkWell(
+                          onTap: () => _showInfoDialog(context, contactTitle, contactContent),
+                          child: Text(isTr ? 'İletişim' : 'Contact Us', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
+                        ),
+                      ],
+                    );
+                  }
                 ),
-                const SizedBox(height: 8),
-                Text(isTr ? 'İletişim' : 'Contact Us', style: const TextStyle(color: Color(0xFFF3A712), decoration: TextDecoration.underline)),
               ],
             ),
           )
@@ -258,6 +298,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       title: Text(name, style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
       trailing: Text('₺${rate.buyingPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+    );
+  }
+
+  void _showInfoDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(child: Text(content, style: const TextStyle(height: 1.5))),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Kapat', style: TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
     );
   }
 

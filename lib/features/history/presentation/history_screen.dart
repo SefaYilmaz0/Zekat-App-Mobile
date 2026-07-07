@@ -5,6 +5,7 @@ import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../domain/history_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
+import '../../assets/domain/asset_model.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -75,10 +76,52 @@ class HistoryScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {}, // Active visually
+                    onPressed: currentZakat <= 0.0
+                        ? null
+                        : () async {
+                            final today = DateTime.now();
+                            final periodName = isTr ? 'Zekat Ödemesi' : 'Zakat Payment';
+                            final months = isTr
+                                ? ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
+                                : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                            final gregorian = '${months[today.month - 1]} ${today.year}';
+
+                            final assetsBox = Hive.box<AssetModel>('assets');
+                            final currentAssets = assetsBox.values.toList();
+
+                            final historyItem = HistoryModel(
+                              id: DateTime.now().millisecondsSinceEpoch,
+                              period: periodName,
+                              gregorian: gregorian,
+                              amount: currentZakat,
+                              currency: 'TRY',
+                              status: 'paid',
+                              assetCount: currentAssets.length,
+                              date: today.toIso8601String(),
+                              assets: currentAssets,
+                              liabilities: [],
+                            );
+
+                            final historyBox = Hive.box<HistoryModel>('history');
+                            await historyBox.add(historyItem);
+                            await assetsBox.clear();
+
+                            ref.invalidate(calculatorProvider);
+
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(isTr ? 'Zekat ödemesi başarıyla kaydedildi!' : 'Zakat payment saved successfully!'),
+                                  backgroundColor: const Color(0xFF10B981),
+                                ),
+                              );
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF3A712),
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade500,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       elevation: 0,
@@ -86,6 +129,7 @@ class HistoryScreen extends ConsumerWidget {
                     child: Text(isTr ? 'Ödeme Yap' : 'Make Payment', style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 )
+
               ],
             ),
           ),

@@ -57,19 +57,57 @@ class FrankfurterService implements ExchangeRateService {
   }
 }
 
-class ExchangeRateRepository {
-  final ExchangeRateService primaryService = GenelParaService();
-  final ExchangeRateService fallbackService = FrankfurterService();
+// 3. Servis: Truncgil API (Altın ve Döviz - Popüler ve Ücretsiz)
+class TruncgilService implements ExchangeRateService {
+  final Dio dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 5)));
 
-  Future<List<ExchangeRateModel>> getRates() async {
-    // Önce 1. Servisten veri çekmeyi dene
-    List<ExchangeRateModel> rates = await primaryService.fetchRates();
-    
-    if (rates.isEmpty) {
-      // 1. Servis çökerse, ücretsiz 2. servise (Fallback) geç
-      rates = await fallbackService.fetchRates();
+  @override
+  Future<List<ExchangeRateModel>> fetchRates() async {
+    try {
+      final response = await dio.get('https://finans.truncgil.com/today.json');
+      final data = response.data as Map<String, dynamic>;
+      
+      double parseDouble(dynamic val) {
+        if (val == null) return 0.0;
+        final clean = val.toString().replaceAll('.', '').replaceAll(',', '.');
+        return double.tryParse(clean) ?? 0.0;
+      }
+
+      final usd = parseDouble(data['USD']?['Alış']);
+      final eur = parseDouble(data['EUR']?['Alış']);
+      final gold = parseDouble(data['gram-altin']?['Alış']);
+
+      return [
+        ExchangeRateModel(currencyCode: 'USD', currencyName: 'Amerikan Doları', buyingPrice: usd, sellingPrice: usd, lastUpdate: DateTime.now()),
+        ExchangeRateModel(currencyCode: 'EUR', currencyName: 'Euro', buyingPrice: eur, sellingPrice: eur, lastUpdate: DateTime.now()),
+        ExchangeRateModel(currencyCode: 'GOLD', currencyName: 'Gram Altın', buyingPrice: gold, sellingPrice: gold, lastUpdate: DateTime.now()),
+      ];
+    } catch (e) {
+      return [];
     }
-    
-    return rates;
   }
 }
+
+class ExchangeRateRepository {
+  final List<ExchangeRateService> services = [
+    GenelParaService(),
+    TruncgilService(),
+    FrankfurterService(),
+  ];
+
+  Future<List<ExchangeRateModel>> getRates() async {
+    for (final service in services) {
+      try {
+        final rates = await service.fetchRates();
+        if (rates.isNotEmpty) {
+          final hasGold = rates.any((r) => r.currencyCode == 'GOLD');
+          if (hasGold || service == services.last) {
+            return rates;
+          }
+        }
+      } catch (_) {}
+    }
+    return [];
+  }
+}
+
