@@ -6,6 +6,7 @@ import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
 import '../../domain/asset_model.dart';
 import '../../../calculator/presentation/calculator_provider.dart';
+import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
 class GoldAssetForm extends ConsumerStatefulWidget {
   final VoidCallback onBack;
@@ -34,6 +35,22 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
     final isTr = appState.language == Language.tr;
     final goldRateAsync = ref.watch(goldRateProvider);
     final goldPrice = goldRateAsync.value ?? 3650.0;
+    final ratesAsync = ref.watch(exchangeRatesProvider);
+    final rates = ratesAsync.value ?? [];
+
+    double usdPrice = 46.0;
+    double eurPrice = 53.0;
+    for (var r in rates) {
+      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
+      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
+    }
+
+    double conversionRate = 1.0;
+    if (appState.currency == AppCurrency.usd) {
+      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
+    } else if (appState.currency == AppCurrency.eur) {
+      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
+    }
 
     final goldTypes = isTr
         ? ['Gram', 'Çeyrek', 'Yarım', 'Tam', 'Cumhuriyet', 'Ata']
@@ -73,9 +90,12 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
       }
     }
 
-    final unitPrice = getUnitGoldPrice();
+    final unitPriceTRY = getUnitGoldPrice();
     final quantity = double.tryParse(_goldQuantityController.text) ?? 0.0;
-    final totalValue = quantity * unitPrice;
+    final totalValueTRY = quantity * unitPriceTRY;
+
+    final unitPriceConverted = unitPriceTRY / conversionRate;
+    final totalValueConverted = totalValueTRY / conversionRate;
 
     return Form(
       key: _formKey,
@@ -167,7 +187,7 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(isTr ? 'Birim Fiyat:' : 'Unit Price:', style: const TextStyle(fontSize: 12)),
-                    Text('₺${unitPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text('${appState.currency.symbol}${unitPriceConverted.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   ],
                 ),
                 const Divider(height: 16),
@@ -175,7 +195,7 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(isTr ? 'Toplam Değer:' : 'Total Value:', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text('₺${totalValue.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712))),
+                    Text('${appState.currency.symbol}${totalValueConverted.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712))),
                   ],
                 ),
               ],
@@ -199,12 +219,12 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
                           ? '${_purity}K $_goldType ${isTr ? "Altın" : "Gold"}'
                           : '$_goldType ${isTr ? "Altın" : "Gold"}',
                       category: AssetCategory.gold,
-                      value: totalValue,
+                      value: totalValueTRY,
                       details: {
                         'goldType': _goldType,
                         'purity': _purity,
                         'quantity': _goldQuantityController.text,
-                        'unitPrice': unitPrice.toString(),
+                        'unitPrice': unitPriceTRY.toString(),
                       },
                     );
                     final box = Hive.box<AssetModel>('assets');

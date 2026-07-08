@@ -43,15 +43,19 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
       if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
     }
 
-    double getRate() {
-      if (_currency == 'USD') return usdPrice;
-      if (_currency == 'EUR') return eurPrice;
-      return 1.0;
+    double conversionRate = 1.0;
+    if (appState.currency == AppCurrency.usd) {
+      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
+    } else if (appState.currency == AppCurrency.eur) {
+      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
     }
 
-    final currentRate = getRate();
+    final currentRate = _currency == 'USD'
+        ? usdPrice
+        : (_currency == 'EUR' ? eurPrice : 1.0);
     final amount = double.tryParse(_cashAmountController.text) ?? 0.0;
-    final totalValue = amount * currentRate;
+    final totalValueTRY = amount * currentRate;
+    final totalValueConverted = totalValueTRY / conversionRate;
 
     String getTitle() {
       if (widget.category == AssetCategory.debt) return isTr ? 'Borç Ekle' : 'Add Debt';
@@ -64,6 +68,8 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
       if (widget.category == AssetCategory.receivable) return isTr ? 'Alacak Miktarı' : 'Receivable Amount';
       return isTr ? 'Nakit Miktarı' : 'Cash Amount';
     }
+
+    final currencySymbol = appState.currency.symbol;
 
     return Form(
       key: _formKey,
@@ -138,8 +144,8 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(isTr ? 'TRY Karşılığı:' : 'TRY Equivalent:', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('₺${totalValue.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712))),
+              Text(isTr ? '$currencySymbol Karşılığı:' : '$currencySymbol Equivalent:', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text('$currencySymbol${totalValueConverted.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712))),
             ],
           ),
           const SizedBox(height: 24),
@@ -163,7 +169,7 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
                       id: const Uuid().v4(),
                       name: '$_currency $categoryName',
                       category: widget.category,
-                      value: totalValue,
+                      value: totalValueTRY,
                       details: {
                         'currency': _currency,
                         'originalAmount': _cashAmountController.text,

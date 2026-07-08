@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
 import '../../domain/asset_model.dart';
+import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
 class LivestockAssetForm extends ConsumerStatefulWidget {
   final VoidCallback onBack;
@@ -32,14 +33,33 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
+    final ratesAsync = ref.watch(exchangeRatesProvider);
+    final rates = ratesAsync.value ?? [];
+
+    double usdPrice = 46.0;
+    double eurPrice = 53.0;
+    for (var r in rates) {
+      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
+      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
+    }
+
+    double conversionRate = 1.0;
+    if (appState.currency == AppCurrency.usd) {
+      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
+    } else if (appState.currency == AppCurrency.eur) {
+      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
+    }
 
     final quantity = double.tryParse(_livestockQuantityController.text) ?? 0.0;
-    final unitPrice = double.tryParse(_livestockUnitPriceController.text) ?? 0.0;
-    final totalValue = quantity * unitPrice;
+    final unitPriceConverted = double.tryParse(_livestockUnitPriceController.text) ?? 0.0;
+    final totalValueConverted = quantity * unitPriceConverted;
+    final totalValueTRY = totalValueConverted * conversionRate;
 
     final animalTypes = isTr
         ? ['Koyun/Keçi', 'Sığır/Manda', 'Deve']
         : ['Sheep/Goat', 'Cattle/Buffalo', 'Camel'];
+
+    final currencySymbol = appState.currency.symbol;
 
     return Form(
       key: _formKey,
@@ -96,9 +116,9 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
           TextFormField(
             controller: _livestockUnitPriceController,
             decoration: InputDecoration(
-              labelText: isTr ? 'Birim Değer (TRY)' : 'Unit Value (TRY)',
+              labelText: isTr ? 'Birim Değer ($currencySymbol)' : 'Unit Value ($currencySymbol)',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              suffixText: 'TRY',
+              suffixText: currencySymbol,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (val) => setState(() {}),
@@ -109,7 +129,7 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(isTr ? 'Tahmini Toplam:' : 'Estimated Total:', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('₺${totalValue.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712))),
+              Text('$currencySymbol${totalValueConverted.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712))),
             ],
           ),
           const SizedBox(height: 24),
@@ -128,11 +148,11 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
                       id: const Uuid().v4(),
                       name: '$_livestockType ${isTr ? "(Hayvan)" : "(Livestock)"}',
                       category: AssetCategory.livestock,
-                      value: totalValue,
+                      value: totalValueTRY,
                       details: {
                         'livestockType': _livestockType,
                         'quantity': _livestockQuantityController.text,
-                        'unitPrice': _livestockUnitPriceController.text,
+                        'unitPrice': (unitPriceConverted * conversionRate).toString(),
                       },
                     );
                     final box = Hive.box<AssetModel>('assets');

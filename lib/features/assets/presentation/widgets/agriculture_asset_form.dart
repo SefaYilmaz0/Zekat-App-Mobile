@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
 import '../../domain/asset_model.dart';
+import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
 class AgricultureAssetForm extends ConsumerStatefulWidget {
   final VoidCallback onBack;
@@ -32,9 +33,28 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
+    final ratesAsync = ref.watch(exchangeRatesProvider);
+    final rates = ratesAsync.value ?? [];
 
-    final amount = double.tryParse(_agricultureValueController.text) ?? 0.0;
+    double usdPrice = 46.0;
+    double eurPrice = 53.0;
+    for (var r in rates) {
+      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
+      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
+    }
+
+    double conversionRate = 1.0;
+    if (appState.currency == AppCurrency.usd) {
+      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
+    } else if (appState.currency == AppCurrency.eur) {
+      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
+    }
+
+    final amountConverted = double.tryParse(_agricultureValueController.text) ?? 0.0;
+    final amountTRY = amountConverted * conversionRate;
     final ratePercent = _irrigationType == 'natural' ? '10% (Öşür)' : '5% (Yapay/Sulama)';
+
+    final currencySymbol = appState.currency.symbol;
 
     return Form(
       key: _formKey,
@@ -112,9 +132,9 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
           TextFormField(
             controller: _agricultureValueController,
             decoration: InputDecoration(
-              labelText: isTr ? 'Toplam Değer (TRY)' : 'Total Value (TRY)',
+              labelText: isTr ? 'Toplam Değer ($currencySymbol)' : 'Total Value ($currencySymbol)',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              suffixText: 'TRY',
+              suffixText: currencySymbol,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (val) => setState(() {}),
@@ -152,7 +172,7 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
                       id: const Uuid().v4(),
                       name: '${_agricultureNameController.text} ${isTr ? "(Tarım)" : "(Agriculture)"}',
                       category: AssetCategory.agriculture,
-                      value: amount,
+                      value: amountTRY,
                       details: {
                         'irrigationType': _irrigationType,
                       },
