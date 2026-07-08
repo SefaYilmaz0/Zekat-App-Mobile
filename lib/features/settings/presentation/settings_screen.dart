@@ -71,8 +71,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     final contactTitle = isTr ? 'Bize Ulaşın' : 'Contact Us';
     final contactContent = isTr
-        ? 'Soru, görüş ve önerileriniz için bizimle iletişime geçebilirsiniz:\n\nE-posta: support@zekatapp.com'
-        : 'You can contact us for your questions, comments, and suggestions:\n\nEmail: support@zekatapp.com';
+        ? 'Soru, görüş ve önerileriniz için bizimle iletişime geçebilirsiniz:\n\nE-posta: sefa1986@gmail.com'
+        : 'You can contact us for your questions, comments, and suggestions:\n\nEmail: sefa1986@gmail.com';
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
