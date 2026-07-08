@@ -10,6 +10,7 @@ import '../../assets/domain/asset_model.dart';
 import '../../history/domain/history_model.dart';
 import '../../exchange_rates/data/exchange_rate_repository.dart';
 import '../../exchange_rates/presentation/exchange_rate_provider.dart';
+import '../../exchange_rates/domain/exchange_rate_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../../core/theme.dart';
 
