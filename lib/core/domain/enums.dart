@@ -32,3 +32,17 @@ enum AppCurrency {
   eur,
 }
 
+extension AppCurrencyExtension on AppCurrency {
+  String get symbol {
+    switch (this) {
+      case AppCurrency.tryCurrency:
+        return '₺';
+      case AppCurrency.usd:
+        return '\$';
+      case AppCurrency.eur:
+        return '€';
+    }
+  }
+}
+
+

@@ -13,6 +13,18 @@ import 'package:intl/intl.dart';
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
 
+  String _getCurrencySymbol(String currencyCode) {
+    switch (currencyCode.toUpperCase()) {
+      case 'USD':
+        return '\$';
+      case 'EUR':
+        return '€';
+      case 'TRY':
+      default:
+        return '₺';
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
@@ -75,7 +87,7 @@ class HistoryScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('${isTr ? "Hesaplanan Tutar:" : "Calculated Amount:"} ₺${formatCurrency(currentZakat, appState.language)}', style: TextStyle(color: Colors.grey.shade700)),
+                Text('${isTr ? "Hesaplanan Tutar:" : "Calculated Amount:"} ${appState.currency.symbol}${formatCurrency(currentZakat, appState.language)}', style: TextStyle(color: Colors.grey.shade700)),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -116,7 +128,7 @@ class HistoryScreen extends ConsumerWidget {
                               period: periodName,
                               gregorian: gregorian,
                               amount: currentZakat,
-                              currency: 'TRY',
+                              currency: appState.currency.name.toUpperCase().replaceAll('CURRENCY', ''),
                               status: 'paid',
                               assetCount: currentAssets.length,
                               date: today.toIso8601String(),
@@ -219,7 +231,7 @@ class HistoryScreen extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                            Text('₺${formatCurrency(item.amount, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).primaryColor)),
+                            Text('${_getCurrencySymbol(item.currency)}${formatCurrency(item.amount, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).primaryColor)),
                           ],
                         ),
                         const SizedBox(height: 16),

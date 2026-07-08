@@ -87,9 +87,10 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
               icon: const Icon(Icons.share_rounded),
               color: const Color(0xFFF3A712),
               onPressed: () {
+                final sym = appState.currency.symbol;
                 final text = isTr
-                    ? 'ZekatApp ile hesaplanan Toplam Zekat Tutarı: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Sınırı: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Varlık: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}'
-                    : 'Total Zakat calculated with ZakatApp: ₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Limit: ₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Worth: ₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}';
+                    ? 'ZekatApp ile hesaplanan Toplam Zekat Tutarı: $sym${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Sınırı: $sym${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Varlık: $sym${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}'
+                    : 'Total Zakat calculated with ZakatApp: $sym${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Limit: $sym${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Worth: $sym${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}';
                 SharePlus.instance.share(ShareParams(text: text));
               },
             )
@@ -143,7 +144,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                '₺${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}',
+                                '${appState.currency.symbol}${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}',
                                 style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
                               ),
                               const SizedBox(height: 16),
@@ -191,7 +192,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                            Text(isTr ? 'Mevcut Net Varlık' : 'Net Worth', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                           Text('₺${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            Text('${appState.currency.symbol}${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -211,7 +212,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                                Text(isTr ? 'Nisab Sınırı' : 'Nisab Limit', style: const TextStyle(color: Color(0xFFF3A712), fontSize: 12)),
-                               Text('₺${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
+                               Text('${appState.currency.symbol}${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
                             ],
                           )
                         ],
@@ -288,12 +289,12 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                               ),
                               child: Icon(_getIconForCategory(asset.category), color: const Color(0xFFF3A712), size: 20),
                             ),
-                            title: Text(asset.name, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                            title: Text(asset.name, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
                             subtitle: Text(asset.category.name.toUpperCase(), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                             Text('₺${formatCurrency(asset.value, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                             Text('${appState.currency.symbol}${formatCurrency(asset.value / calc.conversionRate, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
                                 IconButton(
                                   icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
                                   onPressed: () => _deleteAsset(context, asset, isTr),
@@ -334,7 +335,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                                 Text(isTr ? 'Toplam Borçlar' : 'Total Debts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).textTheme.bodyLarge?.color)),
                               ],
                             ),
-                             Text('- ₺${formatCurrency(calc.totalDebts, appState.language)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
+                             Text('- ${appState.currency.symbol}${formatCurrency(calc.totalDebts, appState.language)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
                       ),
@@ -360,11 +361,11 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                                 ),
                                 child: Icon(_getIconForCategory(asset.category), color: Colors.red, size: 20),
                               ),
-                              title: Text(asset.name, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                              title: Text(asset.name, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                   Text('- ₺${formatCurrency(asset.value, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
+                                   Text('- ${appState.currency.symbol}${formatCurrency(asset.value / calc.conversionRate, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
                                 IconButton(
                                     icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
                                     onPressed: () => _deleteAsset(context, asset, isTr),
@@ -406,7 +407,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                           isTr 
                             ? "Zekat hesaplaması, mevcut varlıklarınızdan borçlarınız düşüldükten sonra kalan net varlığın %2.5'i (1/40) üzerinden yapılmıştır."
                             : "Zakat calculation is based on 2.5% (1/40) of your net wealth after deducting your debts from your assets.",
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12, height: 1.5),
+                          style: const TextStyle(color: Colors.white, fontSize: 12, height: 1.5),
                         ),
                       )
                     ],

@@ -5,6 +5,7 @@ import '../../../core/providers/app_state_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../exchange_rates/data/exchange_rate_repository.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
+import '../../exchange_rates/presentation/exchange_rate_provider.dart';
 import '../domain/calculation_result.dart';
 
 final goldRateProvider = FutureProvider<double>((ref) async {
@@ -40,8 +41,9 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
   final goldRateAsync = ref.watch(goldRateProvider);
   final assetsAsync = ref.watch(assetsProvider);
   final appState = ref.watch(appStateProvider);
+  final ratesAsync = ref.watch(exchangeRatesProvider);
 
-  if (goldRateAsync is AsyncLoading || assetsAsync is AsyncLoading) {
+  if (goldRateAsync is AsyncLoading || assetsAsync is AsyncLoading || ratesAsync is AsyncLoading) {
     return const AsyncValue.loading();
   }
 
@@ -49,8 +51,24 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
     return AsyncValue.error(goldRateAsync.error!, goldRateAsync.stackTrace!);
   }
 
-  final goldRate = goldRateAsync.value ?? 0.0;
+  final goldRateRaw = goldRateAsync.value ?? 0.0;
   final assets = assetsAsync.value ?? [];
+  final rates = ratesAsync.value ?? [];
+
+  double conversionRate = 1.0;
+  if (appState.currency == AppCurrency.usd) {
+    final usdRate = rates.firstWhere(
+      (r) => r.currencyCode == 'USD',
+      orElse: () => ExchangeRateModel(currencyCode: 'USD', currencyName: 'USD', buyingPrice: 46.0, sellingPrice: 46.0, lastUpdate: DateTime.now()),
+    );
+    conversionRate = usdRate.buyingPrice > 0 ? usdRate.buyingPrice : 46.0;
+  } else if (appState.currency == AppCurrency.eur) {
+    final eurRate = rates.firstWhere(
+      (r) => r.currencyCode == 'EUR',
+      orElse: () => ExchangeRateModel(currencyCode: 'EUR', currencyName: 'EUR', buyingPrice: 53.0, sellingPrice: 53.0, lastUpdate: DateTime.now()),
+    );
+    conversionRate = eurRate.buyingPrice > 0 ? eurRate.buyingPrice : 53.0;
+  }
 
   double totalAssets = 0;
   double totalDebts = 0;
@@ -74,7 +92,7 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
     netZakatableAmount = 0;
   }
 
-  final nisabThreshold = 80.18 * goldRate;
+  final nisabThreshold = 80.18 * goldRateRaw;
   final isNisabReached = netZakatableAmount >= nisabThreshold;
 
   double zakatToPay = 0;
@@ -96,13 +114,14 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
   }
 
   return AsyncValue.data(CalculationResult(
-    totalAssets: totalAssets,
-    totalDebts: totalDebts,
-    netZakatableAmount: netZakatableAmount,
-    nisabThreshold: nisabThreshold,
+    totalAssets: totalAssets / conversionRate,
+    totalDebts: totalDebts / conversionRate,
+    netZakatableAmount: netZakatableAmount / conversionRate,
+    nisabThreshold: nisabThreshold / conversionRate,
     isNisabReached: isNisabReached,
-    zakatToPay: zakatToPay,
-    goldRate: goldRate,
+    zakatToPay: zakatToPay / conversionRate,
+    goldRate: goldRateRaw / conversionRate,
+    conversionRate: conversionRate,
   ));
 });
 

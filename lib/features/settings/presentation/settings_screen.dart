@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
@@ -22,11 +23,22 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   List<ExchangeRateModel> _rates = [];
   bool _isLoadingRates = true;
+  String _version = '1.0.0';
 
   @override
   void initState() {
     super.initState();
     _fetchRates();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      setState(() {
+        _version = '${info.version}+${info.buildNumber}';
+      });
+    } catch (_) {}
   }
 
   Future<void> _fetchRates() async {
@@ -59,8 +71,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     final contactTitle = isTr ? 'Bize Ulaşın' : 'Contact Us';
     final contactContent = isTr
-        ? 'Soru, görüş ve önerileriniz için bizimle iletişime geçebilirsiniz:\n\nE-posta: sefa1986@gmail.com'
-        : 'You can contact us for your questions, comments, and suggestions:\n\nEmail: sefa1986@gmail.com';
+        ? 'Soru, görüş ve önerileriniz için bizimle iletişime geçebilirsiniz:\n\nE-posta: support@zekatapp.com'
+        : 'You can contact us for your questions, comments, and suggestions:\n\nEmail: support@zekatapp.com';
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -77,9 +89,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF9E6),
+              color: appState.isDark ? AppTheme.surfaceDark : const Color(0xFFFFF9E6),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFFDE68A)),
+              border: Border.all(color: appState.isDark ? Colors.white10 : const Color(0xFFFDE68A)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +102,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(isTr ? 'Verileriniz Cihazınızda' : 'Your Data is Local', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                      Text(isTr ? 'Verileriniz Cihazınızda' : 'Your Data is Local', style: TextStyle(fontWeight: FontWeight.bold, color: appState.isDark ? Colors.white : Colors.black87)),
                       const SizedBox(height: 4),
                       Text(
                         isTr 
@@ -284,7 +296,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 const Icon(Icons.calculate_rounded, color: Color(0xFFF3A712), size: 40),
                 const SizedBox(height: 12),
-                Text('ZekatApp v1.0.1 (Offline)', style: TextStyle(color: Colors.grey.shade400, fontSize: 12, fontWeight: FontWeight.w500)),
+                Text('ZekatApp v$_version (Offline)', style: TextStyle(color: Colors.grey.shade400, fontSize: 12, fontWeight: FontWeight.w500)),
               ],
             ),
           )
@@ -316,7 +328,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Icon(icon, color: iconColor, size: 20),
       ),
       title: Text(name, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w500, fontSize: 14)),
-      trailing: Text('₺${formatCurrency(rate.buyingPrice, lang)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+      trailing: Text('${appState.currency.symbol}${formatCurrency(rate.buyingPrice, lang)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
     );
   }
 
@@ -346,7 +358,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(isTr ? 'Dikkat!' : 'Warning!', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           content: Text(isTr 

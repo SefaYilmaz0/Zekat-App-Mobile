@@ -6,6 +6,7 @@ class CalculationResult {
   final bool isNisabReached;
   final double zakatToPay;
   final double goldRate;
+  final double conversionRate;
 
   CalculationResult({
     required this.totalAssets,
@@ -15,6 +16,7 @@ class CalculationResult {
     required this.isNisabReached,
     required this.zakatToPay,
     required this.goldRate,
+    required this.conversionRate,
   });
 
   factory CalculationResult.empty() {
@@ -26,6 +28,7 @@ class CalculationResult {
       isNisabReached: false,
       zakatToPay: 0,
       goldRate: 0,
+      conversionRate: 1.0,
     );
   }
 }
