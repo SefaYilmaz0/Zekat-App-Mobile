@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/domain/enums.dart';
+import '../../../core/domain/app_state.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../assets/domain/asset_model.dart';
@@ -155,11 +156,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ? const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(color: Color(0xFFF3A712))))
               : Column(
                   children: [
-                    _buildRateRow('GOLD', isTr ? 'Gram Altın (24K)' : 'Gold (24K)', Icons.grid_goldenratio_rounded, appState.language),
+                    _buildRateRow('GOLD', isTr ? 'Gram Altın (24K)' : 'Gold (24K)', Icons.grid_goldenratio_rounded, appState.language, appState),
                     const Divider(height: 1, indent: 56),
-                    _buildRateRow('USD', 'Amerikan Doları (USD)', Icons.attach_money_rounded, appState.language),
+                    _buildRateRow('USD', 'Amerikan Doları (USD)', Icons.attach_money_rounded, appState.language, appState),
                     const Divider(height: 1, indent: 56),
-                    _buildRateRow('EUR', 'Euro (EUR)', Icons.euro_rounded, appState.language),
+                    _buildRateRow('EUR', 'Euro (EUR)', Icons.euro_rounded, appState.language, appState),
                   ],
                 ),
           ),
@@ -311,9 +312,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildRateRow(String code, String name, IconData icon, Language lang) {
+  Widget _buildRateRow(String code, String name, IconData icon, Language lang, AppState appState) {
+    double usdPrice = 1.0;
+    double eurPrice = 1.0;
+    for (var r in _rates) {
+      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
+      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
+    }
+
+    double conversionRate = 1.0;
+    if (appState.currency == AppCurrency.usd) {
+      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
+    } else if (appState.currency == AppCurrency.eur) {
+      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
+    }
+
     final rate = _rates.firstWhere((r) => r.currencyCode == code, orElse: () => ExchangeRateModel(currencyCode: code, currencyName: name, buyingPrice: 0, sellingPrice: 0, lastUpdate: DateTime.now()));
     
+    final displayPrice = conversionRate > 0 ? rate.buyingPrice / conversionRate : 0.0;
+
     Color iconColor;
     Color bgColor;
     if (code == 'GOLD') {
@@ -334,7 +351,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Icon(icon, color: iconColor, size: 20),
       ),
       title: Text(name, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w500, fontSize: 14)),
-      trailing: Text('₺${formatCurrency(rate.buyingPrice, lang)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+      trailing: Text('${appState.currency.symbol}${formatCurrency(displayPrice, lang)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
     );
   }
 
