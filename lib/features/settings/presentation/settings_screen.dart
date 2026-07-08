@@ -9,7 +9,7 @@ import '../../../core/utils/currency_formatter.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../history/domain/history_model.dart';
 import '../../exchange_rates/data/exchange_rate_repository.dart';
-import '../../exchange_rates/domain/exchange_rate_model.dart';
+import '../../exchange_rates/presentation/exchange_rate_provider.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../../core/theme.dart';
 
@@ -216,7 +216,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     value: appState.currency,
                     underline: const SizedBox(),
                     items: AppCurrency.values.map((c) => DropdownMenuItem(value: c, child: Text(c.name.toUpperCase().replaceAll('CURRENCY', '')))).toList(),
-                    onChanged: (val) { if(val != null) notifier.setCurrency(val); },
+                    onChanged: (val) {
+                      if (val != null) {
+                        notifier.setCurrency(val);
+                        ref.invalidate(exchangeRatesProvider);
+                      }
+                    },
                   ),
                 ),
                 const Divider(height: 1, indent: 56),
@@ -306,7 +311,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildRateRow(String code, String name, IconData icon, Language lang) {
-    final appState = ref.read(appStateProvider);
     final rate = _rates.firstWhere((r) => r.currencyCode == code, orElse: () => ExchangeRateModel(currencyCode: code, currencyName: name, buyingPrice: 0, sellingPrice: 0, lastUpdate: DateTime.now()));
     
     Color iconColor;
@@ -329,7 +333,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Icon(icon, color: iconColor, size: 20),
       ),
       title: Text(name, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w500, fontSize: 14)),
-      trailing: Text('${appState.currency.symbol}${formatCurrency(rate.buyingPrice, lang)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+      trailing: Text('₺${formatCurrency(rate.buyingPrice, lang)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
     );
   }
 
