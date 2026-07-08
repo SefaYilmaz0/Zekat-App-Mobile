@@ -306,6 +306,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildRateRow(String code, String name, IconData icon, Language lang) {
+    final appState = ref.read(appStateProvider);
     final rate = _rates.firstWhere((r) => r.currencyCode == code, orElse: () => ExchangeRateModel(currencyCode: code, currencyName: name, buyingPrice: 0, sellingPrice: 0, lastUpdate: DateTime.now()));
     
     Color iconColor;

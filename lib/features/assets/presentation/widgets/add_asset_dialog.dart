@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
+import '../../domain/asset_model.dart';
 import 'gold_asset_form.dart';
 import 'cash_asset_form.dart';
 import 'livestock_asset_form.dart';

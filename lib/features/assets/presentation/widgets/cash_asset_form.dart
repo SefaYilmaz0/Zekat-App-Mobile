@@ -6,7 +6,6 @@ import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
 import '../../domain/asset_model.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
-import '../../../exchange_rates/domain/exchange_rate_model.dart';
 
 class CashAssetForm extends ConsumerStatefulWidget {
   final AssetCategory category;
