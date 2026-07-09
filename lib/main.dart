@@ -27,6 +27,7 @@ void main() async {
   Hive.registerAdapter(LanguageAdapter());
   Hive.registerAdapter(SectAdapter());
   Hive.registerAdapter(AppCurrencyAdapter());
+  Hive.registerAdapter(NisabTypeAdapter());
   Hive.registerAdapter(AppStateAdapter());
   Hive.registerAdapter(HistoryModelAdapter());
 

@@ -16,6 +16,8 @@ enum AssetCategory {
   receivable,
   @HiveField(5)
   debt,
+  @HiveField(6)
+  silver,
 }
 
 @HiveType(typeId: 1)

@@ -7,6 +7,7 @@ import '../domain/history_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/utils/hijri_date_helper.dart';
 import '../../../core/theme.dart';
 import 'package:intl/intl.dart';
 
@@ -73,7 +74,7 @@ class HistoryScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(isTr ? 'Dönem Zekatı' : 'Period Zakat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                        Text(DateFormat('MMMM yyyy', isTr ? 'tr_TR' : 'en_US').format(DateTime.now()), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                        Text('${DateFormat('MMMM yyyy', isTr ? 'tr_TR' : 'en_US').format(DateTime.now())} / ${HijriDateHelper.formatHijriMonthYear(DateTime.now(), appState.language)}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                       ],
                     ),
                     Container(
@@ -134,6 +135,7 @@ class HistoryScreen extends ConsumerWidget {
                               date: today.toIso8601String(),
                               assets: currentAssets,
                               liabilities: [],
+                              hijriDate: HijriDateHelper.formatHijriMonthYear(today, appState.language),
                             );
 
                             final historyBox = Hive.box<HistoryModel>('history');
@@ -226,7 +228,12 @@ class HistoryScreen extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(item.period, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                                    Text(item.gregorian, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                                    Text(
+                                      item.hijriDate != null 
+                                          ? '${item.gregorian} / ${item.hijriDate}' 
+                                          : item.gregorian, 
+                                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12)
+                                    ),
                                   ],
                                 ),
                               ],

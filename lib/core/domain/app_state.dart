@@ -20,12 +20,16 @@ class AppState extends HiveObject {
   @HiveField(4)
   bool onboardingComplete;
 
+  @HiveField(5)
+  NisabType nisabType;
+
   AppState({
     required this.sect,
     required this.currency,
     required this.isDark,
     required this.language,
     required this.onboardingComplete,
+    required this.nisabType,
   });
 }
 

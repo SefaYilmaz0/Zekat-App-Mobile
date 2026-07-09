@@ -26,6 +26,7 @@ class GenelParaService implements ExchangeRateService {
         ExchangeRateModel.fromJson(data['USD'], 'USD', 'Amerikan Doları'),
         ExchangeRateModel.fromJson(data['EUR'], 'EUR', 'Euro'),
         ExchangeRateModel.fromJson(data['GA'], 'GOLD', 'Gram Altın'),
+        ExchangeRateModel.fromJson(data['GUMUS'], 'SILVER', 'Gram Gümüş'),
       ];
     } catch (e) {
       return []; 
@@ -76,11 +77,13 @@ class TruncgilService implements ExchangeRateService {
       final usd = parseDouble(data['USD']?['Alış']);
       final eur = parseDouble(data['EUR']?['Alış']);
       final gold = parseDouble(data['gram-altin']?['Alış']);
+      final silver = parseDouble(data['gumus']?['Alış']);
 
       return [
         ExchangeRateModel(currencyCode: 'USD', currencyName: 'Amerikan Doları', buyingPrice: usd, sellingPrice: usd, lastUpdate: DateTime.now()),
         ExchangeRateModel(currencyCode: 'EUR', currencyName: 'Euro', buyingPrice: eur, sellingPrice: eur, lastUpdate: DateTime.now()),
         ExchangeRateModel(currencyCode: 'GOLD', currencyName: 'Gram Altın', buyingPrice: gold, sellingPrice: gold, lastUpdate: DateTime.now()),
+        ExchangeRateModel(currencyCode: 'SILVER', currencyName: 'Gram Gümüş', buyingPrice: silver, sellingPrice: silver, lastUpdate: DateTime.now()),
       ];
     } catch (e) {
       return [];

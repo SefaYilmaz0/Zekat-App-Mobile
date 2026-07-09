@@ -138,3 +138,41 @@ class AppCurrencyAdapter extends TypeAdapter<AppCurrency> {
           typeId == other.typeId;
 }
 
+class NisabTypeAdapter extends TypeAdapter<NisabType> {
+  @override
+  final int typeId = 7;
+
+  @override
+  NisabType read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return NisabType.gold;
+      case 1:
+        return NisabType.silver;
+      default:
+        return NisabType.gold;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, NisabType obj) {
+    switch (obj) {
+      case NisabType.gold:
+        writer.writeByte(0);
+        break;
+      case NisabType.silver:
+        writer.writeByte(1);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NisabTypeAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}

@@ -4,10 +4,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/utils/hijri_date_helper.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../assets/presentation/widgets/add_asset_dialog.dart';
+import '../services/pdf_report_service.dart';
+import 'widgets/pdf_preview_screen.dart';
 import '../../../core/theme.dart';
 
 class GridPatternPainter extends CustomPainter {
@@ -39,6 +42,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
   IconData _getIconForCategory(AssetCategory category) {
     switch (category) {
       case AssetCategory.gold: return Icons.grid_goldenratio_rounded;
+      case AssetCategory.silver: return Icons.diamond_outlined;
       case AssetCategory.cash: return Icons.payments_rounded;
       case AssetCategory.agriculture: return Icons.agriculture_rounded;
       case AssetCategory.livestock: return Icons.pets_rounded;
@@ -82,7 +86,28 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
         title: Text(isTr ? 'Özet' : 'Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).textTheme.displayLarge?.color)),
         centerTitle: true,
         actions: [
-          if (calc != null)
+          if (calc != null) ...[
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf_rounded),
+              color: const Color(0xFFF3A712),
+              onPressed: () async {
+                final assets = assetsAsync.value ?? [];
+                final pdfBytes = await PdfReportService.generateReport(
+                  calc: calc,
+                  assets: assets,
+                  appState: appState,
+                  isTr: isTr,
+                );
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PdfPreviewScreen(pdfBytes: pdfBytes),
+                    ),
+                  );
+                }
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.share_rounded),
               color: const Color(0xFFF3A712),
@@ -93,7 +118,8 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     : 'Total Zakat calculated with ZakatApp: $sym${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}\nNisab Limit: $sym${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}\nNet Worth: $sym${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}';
                 SharePlus.instance.share(ShareParams(text: text));
               },
-            )
+            ),
+          ],
         ],
       ),
       body: calcAsync.when(
@@ -147,7 +173,12 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                                 '${appState.currency.symbol}${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}',
                                 style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 4),
+                              Text(
+                                HijriDateHelper.formatHijri(DateTime.now(), appState.language),
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13, fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 12),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
@@ -290,11 +321,40 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                               child: Icon(_getIconForCategory(asset.category), color: const Color(0xFFF3A712), size: 20),
                             ),
                             title: Text(asset.name, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                            subtitle: Text(asset.category.name.toUpperCase(), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                            subtitle: Row(
+                              children: [
+                                Text(asset.category.name.toUpperCase(), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                                if (asset.category == AssetCategory.gold &&
+                                    asset.details?['isJewelry'] == true &&
+                                    appState.sect != Sect.hanefi) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: appState.isDark ? Colors.white12 : Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      isTr ? 'MUAF' : 'EXEMPT',
+                                      style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: appState.isDark ? Colors.white60 : Colors.grey.shade700),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                             Text('${appState.currency.symbol}${formatCurrency(asset.value / calc.conversionRate, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                Text('${appState.currency.symbol}${formatCurrency(asset.value / calc.conversionRate, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                IconButton(
+                                  icon: Icon(Icons.edit_outlined, color: Colors.grey.shade400, size: 20),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AddAssetDialog(existingAsset: asset),
+                                    );
+                                  },
+                                ),
                                 IconButton(
                                   icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
                                   onPressed: () => _deleteAsset(context, asset, isTr),
@@ -365,8 +425,17 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                   Text('- ${appState.currency.symbol}${formatCurrency(asset.value / calc.conversionRate, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
-                                IconButton(
+                                  Text('- ${appState.currency.symbol}${formatCurrency(asset.value / calc.conversionRate, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
+                                  IconButton(
+                                    icon: Icon(Icons.edit_outlined, color: Colors.grey.shade400, size: 20),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AddAssetDialog(existingAsset: asset),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
                                     icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
                                     onPressed: () => _deleteAsset(context, asset, isTr),
                                   ),

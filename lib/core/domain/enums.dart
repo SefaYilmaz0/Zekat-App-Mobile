@@ -45,4 +45,12 @@ extension AppCurrencyExtension on AppCurrency {
   }
 }
 
+@HiveType(typeId: 7)
+enum NisabType {
+  @HiveField(0)
+  gold,
+  @HiveField(1)
+  silver,
+}
+
 

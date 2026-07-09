@@ -8,9 +8,10 @@ import '../../domain/asset_model.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
 class AgricultureAssetForm extends ConsumerStatefulWidget {
+  final AssetModel? existingAsset;
   final VoidCallback onBack;
 
-  const AgricultureAssetForm({super.key, required this.onBack});
+  const AgricultureAssetForm({super.key, this.existingAsset, required this.onBack});
 
   @override
   ConsumerState<AgricultureAssetForm> createState() => _AgricultureAssetFormState();
@@ -21,6 +22,20 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
   final _agricultureNameController = TextEditingController();
   String _irrigationType = 'natural';
   final _agricultureValueController = TextEditingController();
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingAsset != null) {
+      String storedName = widget.existingAsset!.name;
+      storedName = storedName
+          .replaceAll(' (Tarım)', '')
+          .replaceAll(' (Agriculture)', '');
+      _agricultureNameController.text = storedName;
+      _irrigationType = widget.existingAsset!.details?['irrigationType'] ?? 'natural';
+    }
+  }
 
   @override
   void dispose() {
@@ -48,6 +63,12 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
       conversionRate = usdPrice > 0 ? usdPrice : 46.0;
     } else if (appState.currency == AppCurrency.eur) {
       conversionRate = eurPrice > 0 ? eurPrice : 53.0;
+    }
+
+    if (widget.existingAsset != null && !_isInitialized && rates.isNotEmpty) {
+      final storedValue = widget.existingAsset!.value;
+      _agricultureValueController.text = (storedValue / conversionRate).toStringAsFixed(2);
+      _isInitialized = true;
     }
 
     final amountConverted = double.tryParse(_agricultureValueController.text) ?? 0.0;
@@ -169,7 +190,7 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     final asset = AssetModel(
-                      id: const Uuid().v4(),
+                      id: widget.existingAsset?.id ?? const Uuid().v4(),
                       name: '${_agricultureNameController.text} ${isTr ? "(Tarım)" : "(Agriculture)"}',
                       category: AssetCategory.agriculture,
                       value: amountTRY,

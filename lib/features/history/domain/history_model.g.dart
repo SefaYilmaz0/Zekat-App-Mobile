@@ -27,13 +27,14 @@ class HistoryModelAdapter extends TypeAdapter<HistoryModel> {
       date: fields[7] as String,
       assets: (fields[8] as List).cast<AssetModel>(),
       liabilities: (fields[9] as List).cast<AssetModel>(),
+      hijriDate: fields[10] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, HistoryModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class HistoryModelAdapter extends TypeAdapter<HistoryModel> {
       ..writeByte(8)
       ..write(obj.assets)
       ..writeByte(9)
-      ..write(obj.liabilities);
+      ..write(obj.liabilities)
+      ..writeByte(10)
+      ..write(obj.hijriDate);
   }
 
   @override
@@ -66,4 +69,3 @@ class HistoryModelAdapter extends TypeAdapter<HistoryModel> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
-

@@ -13,6 +13,7 @@ final appStateProvider = StateNotifierProvider<AppStateNotifier, AppState>((ref)
       isDark: false,
       language: Language.tr,
       onboardingComplete: false,
+      nisabType: NisabType.gold,
     );
     box.put('current', state);
   }
@@ -31,6 +32,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       isDark: state.isDark,
       language: language,
       onboardingComplete: state.onboardingComplete,
+      nisabType: state.nisabType,
     );
     box.put('current', state);
   }
@@ -42,6 +44,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       isDark: state.isDark,
       language: state.language,
       onboardingComplete: state.onboardingComplete,
+      nisabType: state.nisabType,
     );
     box.put('current', state);
   }
@@ -53,6 +56,19 @@ class AppStateNotifier extends StateNotifier<AppState> {
       isDark: state.isDark,
       language: state.language,
       onboardingComplete: state.onboardingComplete,
+      nisabType: state.nisabType,
+    );
+    box.put('current', state);
+  }
+
+  void setNisabType(NisabType nisabType) {
+    state = AppState(
+      sect: state.sect,
+      currency: state.currency,
+      isDark: state.isDark,
+      language: state.language,
+      onboardingComplete: state.onboardingComplete,
+      nisabType: nisabType,
     );
     box.put('current', state);
   }
@@ -64,6 +80,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       isDark: !state.isDark,
       language: state.language,
       onboardingComplete: state.onboardingComplete,
+      nisabType: state.nisabType,
     );
     box.put('current', state);
   }
@@ -75,6 +92,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       isDark: state.isDark,
       language: state.language,
       onboardingComplete: true,
+      nisabType: state.nisabType,
     );
     box.put('current', state);
   }
@@ -86,8 +104,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       isDark: false,
       language: Language.tr,
       onboardingComplete: false,
+      nisabType: NisabType.gold,
     );
     box.put('current', state);
   }
 }
-

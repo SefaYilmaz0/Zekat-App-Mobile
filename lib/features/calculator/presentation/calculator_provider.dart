@@ -24,6 +24,22 @@ final goldRateProvider = FutureProvider<double>((ref) async {
   return goldRate.buyingPrice;
 });
 
+final silverRateProvider = FutureProvider<double>((ref) async {
+  final repo = ExchangeRateRepository();
+  final rates = await repo.getRates();
+  final silverRate = rates.firstWhere(
+    (rate) => rate.currencyCode == 'SILVER',
+    orElse: () => ExchangeRateModel(
+      currencyCode: 'SILVER',
+      currencyName: 'Gram Gümüş',
+      buyingPrice: 38.0, // Varsayılan güvenlik değeri
+      sellingPrice: 38.0,
+      lastUpdate: DateTime.now(),
+    ),
+  );
+  return silverRate.buyingPrice;
+});
+
 // A stream of assets to trigger recalculations when assets change
 final assetsProvider = StreamProvider<List<AssetModel>>((ref) {
   final box = Hive.box<AssetModel>('assets');
@@ -39,19 +55,24 @@ extension StreamExt<T> on Stream<T> {
 
 final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
   final goldRateAsync = ref.watch(goldRateProvider);
+  final silverRateAsync = ref.watch(silverRateProvider);
   final assetsAsync = ref.watch(assetsProvider);
   final appState = ref.watch(appStateProvider);
   final ratesAsync = ref.watch(exchangeRatesProvider);
 
-  if (goldRateAsync is AsyncLoading || assetsAsync is AsyncLoading || ratesAsync is AsyncLoading) {
+  if (goldRateAsync is AsyncLoading || silverRateAsync is AsyncLoading || assetsAsync is AsyncLoading || ratesAsync is AsyncLoading) {
     return const AsyncValue.loading();
   }
 
   if (goldRateAsync.hasError) {
     return AsyncValue.error(goldRateAsync.error!, goldRateAsync.stackTrace!);
   }
+  if (silverRateAsync.hasError) {
+    return AsyncValue.error(silverRateAsync.error!, silverRateAsync.stackTrace!);
+  }
 
   final goldRateRaw = goldRateAsync.value ?? 0.0;
+  final silverRateRaw = silverRateAsync.value ?? 0.0;
   final assets = assetsAsync.value ?? [];
   final rates = ratesAsync.value ?? [];
 
@@ -77,6 +98,11 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
     if (asset.category == AssetCategory.debt) {
       totalDebts += asset.value;
     } else {
+      if ((asset.category == AssetCategory.gold || asset.category == AssetCategory.silver) &&
+          asset.details?['isJewelry'] == true &&
+          appState.sect != Sect.hanefi) {
+        continue;
+      }
       totalAssets += asset.value;
     }
   }
@@ -92,7 +118,9 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
     netZakatableAmount = 0;
   }
 
-  final nisabThreshold = 80.18 * goldRateRaw;
+  final nisabThreshold = appState.nisabType == NisabType.silver
+      ? 595.0 * silverRateRaw
+      : 80.18 * goldRateRaw;
   final isNisabReached = netZakatableAmount >= nisabThreshold;
 
   double zakatToPay = 0;
@@ -100,6 +128,11 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
     double tempZakat = 0;
     for (var asset in assets) {
       if (asset.category == AssetCategory.debt) continue;
+      if ((asset.category == AssetCategory.gold || asset.category == AssetCategory.silver) &&
+          asset.details?['isJewelry'] == true &&
+          appState.sect != Sect.hanefi) {
+        continue;
+      }
       
       if (asset.category == AssetCategory.agriculture) {
         final irrigation = asset.details?['irrigationType'] ?? 'natural';

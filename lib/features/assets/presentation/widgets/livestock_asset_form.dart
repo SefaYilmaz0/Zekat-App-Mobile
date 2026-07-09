@@ -8,9 +8,10 @@ import '../../domain/asset_model.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
 class LivestockAssetForm extends ConsumerStatefulWidget {
+  final AssetModel? existingAsset;
   final VoidCallback onBack;
 
-  const LivestockAssetForm({super.key, required this.onBack});
+  const LivestockAssetForm({super.key, this.existingAsset, required this.onBack});
 
   @override
   ConsumerState<LivestockAssetForm> createState() => _LivestockAssetFormState();
@@ -21,6 +22,16 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
   String _livestockType = 'Koyun/Keçi';
   final _livestockQuantityController = TextEditingController();
   final _livestockUnitPriceController = TextEditingController();
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingAsset != null) {
+      _livestockType = widget.existingAsset!.details?['livestockType'] ?? 'Koyun/Keçi';
+      _livestockQuantityController.text = widget.existingAsset!.details?['quantity'] ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -48,6 +59,12 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
       conversionRate = usdPrice > 0 ? usdPrice : 46.0;
     } else if (appState.currency == AppCurrency.eur) {
       conversionRate = eurPrice > 0 ? eurPrice : 53.0;
+    }
+
+    if (widget.existingAsset != null && !_isInitialized && rates.isNotEmpty) {
+      final storedUnitPrice = double.tryParse(widget.existingAsset!.details?['unitPrice'] ?? '') ?? 0.0;
+      _livestockUnitPriceController.text = (storedUnitPrice / conversionRate).toStringAsFixed(2);
+      _isInitialized = true;
     }
 
     final quantity = double.tryParse(_livestockQuantityController.text) ?? 0.0;
@@ -145,7 +162,7 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     final asset = AssetModel(
-                      id: const Uuid().v4(),
+                      id: widget.existingAsset?.id ?? const Uuid().v4(),
                       name: '$_livestockType ${isTr ? "(Hayvan)" : "(Livestock)"}',
                       category: AssetCategory.livestock,
                       value: totalValueTRY,

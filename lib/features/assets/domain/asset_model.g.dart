@@ -77,6 +77,8 @@ class AssetCategoryAdapter extends TypeAdapter<AssetCategory> {
         return AssetCategory.receivable;
       case 5:
         return AssetCategory.debt;
+      case 6:
+        return AssetCategory.silver;
       default:
         return AssetCategory.gold;
     }
@@ -103,6 +105,9 @@ class AssetCategoryAdapter extends TypeAdapter<AssetCategory> {
       case AssetCategory.debt:
         writer.writeByte(5);
         break;
+      case AssetCategory.silver:
+        writer.writeByte(6);
+        break;
     }
   }
 
@@ -116,4 +121,3 @@ class AssetCategoryAdapter extends TypeAdapter<AssetCategory> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
-

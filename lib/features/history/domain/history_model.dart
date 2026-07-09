@@ -35,6 +35,9 @@ class HistoryModel extends HiveObject {
   @HiveField(9)
   List<AssetModel> liabilities;
 
+  @HiveField(10)
+  String? hijriDate;
+
   HistoryModel({
     required this.id,
     required this.period,
@@ -46,6 +49,7 @@ class HistoryModel extends HiveObject {
     required this.date,
     required this.assets,
     required this.liabilities,
+    this.hijriDate,
   });
 }
 

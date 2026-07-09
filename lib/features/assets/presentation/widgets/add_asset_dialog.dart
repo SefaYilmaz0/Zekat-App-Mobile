@@ -4,20 +4,29 @@ import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
 import '../../domain/asset_model.dart';
 import 'gold_asset_form.dart';
+import 'silver_asset_form.dart';
 import 'cash_asset_form.dart';
 import 'livestock_asset_form.dart';
 import 'agriculture_asset_form.dart';
 
 class AddAssetDialog extends ConsumerStatefulWidget {
-  const AddAssetDialog({super.key});
+  final AssetModel? existingAsset;
+  const AddAssetDialog({super.key, this.existingAsset});
 
   @override
   ConsumerState<AddAssetDialog> createState() => _AddAssetDialogState();
 }
 
 class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
-  bool _isCategorySelected = false;
-  AssetCategory _selectedCategory = AssetCategory.cash;
+  late bool _isCategorySelected;
+  late AssetCategory _selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _isCategorySelected = widget.existingAsset != null;
+    _selectedCategory = widget.existingAsset?.category ?? AssetCategory.cash;
+  }
 
   Widget _buildCategoryGrid(bool isTr, bool isDark) {
     return Column(
@@ -46,6 +55,7 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
             IconData icon;
             String name;
             if (cat == AssetCategory.gold) { bgColor = const Color(0xFFFEF3C7); iconColor = const Color(0xFFF3A712); icon = Icons.grid_goldenratio_rounded; name = isTr ? 'Altın' : 'Gold'; }
+            else if (cat == AssetCategory.silver) { bgColor = const Color(0xFFE2E8F0); iconColor = const Color(0xFF64748B); icon = Icons.diamond_outlined; name = isTr ? 'Gümüş' : 'Silver'; }
             else if (cat == AssetCategory.cash) { bgColor = const Color(0xFFD1FAE5); iconColor = const Color(0xFF10B981); icon = Icons.payments_rounded; name = isTr ? 'Nakit' : 'Cash'; }
             else if (cat == AssetCategory.debt) { bgColor = const Color(0xFFFEE2E2); iconColor = const Color(0xFFEF4444); icon = Icons.money_off_rounded; name = isTr ? 'Borç / Gider' : 'Debt'; }
             else if (cat == AssetCategory.receivable) { bgColor = const Color(0xFFDBEAFE); iconColor = const Color(0xFF3B82F6); icon = Icons.account_balance_rounded; name = isTr ? 'Alacaklar' : 'Receivables'; }
@@ -90,15 +100,17 @@ class _AddAssetDialogState extends ConsumerState<AddAssetDialog> {
   Widget _buildForm() {
     switch (_selectedCategory) {
       case AssetCategory.gold:
-        return GoldAssetForm(onBack: () => setState(() => _isCategorySelected = false));
+        return GoldAssetForm(existingAsset: widget.existingAsset, onBack: () => setState(() => _isCategorySelected = false));
       case AssetCategory.cash:
       case AssetCategory.receivable:
       case AssetCategory.debt:
-        return CashAssetForm(category: _selectedCategory, onBack: () => setState(() => _isCategorySelected = false));
+        return CashAssetForm(category: _selectedCategory, existingAsset: widget.existingAsset, onBack: () => setState(() => _isCategorySelected = false));
       case AssetCategory.livestock:
-        return LivestockAssetForm(onBack: () => setState(() => _isCategorySelected = false));
+        return LivestockAssetForm(existingAsset: widget.existingAsset, onBack: () => setState(() => _isCategorySelected = false));
+      case AssetCategory.silver:
+        return SilverAssetForm(existingAsset: widget.existingAsset, onBack: () => setState(() => _isCategorySelected = false));
       case AssetCategory.agriculture:
-        return AgricultureAssetForm(onBack: () => setState(() => _isCategorySelected = false));
+        return AgricultureAssetForm(existingAsset: widget.existingAsset, onBack: () => setState(() => _isCategorySelected = false));
     }
   }
 

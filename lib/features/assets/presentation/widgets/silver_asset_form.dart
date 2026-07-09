@@ -8,37 +8,37 @@ import '../../domain/asset_model.dart';
 import '../../../calculator/presentation/calculator_provider.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
-class GoldAssetForm extends ConsumerStatefulWidget {
+class SilverAssetForm extends ConsumerStatefulWidget {
   final AssetModel? existingAsset;
   final VoidCallback onBack;
 
-  const GoldAssetForm({super.key, this.existingAsset, required this.onBack});
+  const SilverAssetForm({super.key, this.existingAsset, required this.onBack});
 
   @override
-  ConsumerState<GoldAssetForm> createState() => _GoldAssetFormState();
+  ConsumerState<SilverAssetForm> createState() => _SilverAssetFormState();
 }
 
-class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
+class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
   final _formKey = GlobalKey<FormState>();
-  String _goldType = 'Gram';
-  String _purity = '24';
-  final _goldQuantityController = TextEditingController();
+  String _silverType = 'Gram';
+  String _purity = '925';
+  final _silverQuantityController = TextEditingController();
   bool _isJewelry = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.existingAsset != null) {
-      _goldType = widget.existingAsset!.details?['goldType'] ?? 'Gram';
-      _purity = widget.existingAsset!.details?['purity'] ?? '24';
-      _goldQuantityController.text = widget.existingAsset!.details?['quantity'] ?? '';
+      _silverType = widget.existingAsset!.details?['silverType'] ?? 'Gram';
+      _purity = widget.existingAsset!.details?['purity'] ?? '925';
+      _silverQuantityController.text = widget.existingAsset!.details?['quantity'] ?? '';
       _isJewelry = widget.existingAsset!.details?['isJewelry'] ?? false;
     }
   }
 
   @override
   void dispose() {
-    _goldQuantityController.dispose();
+    _silverQuantityController.dispose();
     super.dispose();
   }
 
@@ -46,8 +46,8 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
-    final goldRateAsync = ref.watch(goldRateProvider);
-    final goldPrice = goldRateAsync.value ?? 3650.0;
+    final silverRateAsync = ref.watch(silverRateProvider);
+    final silverPrice = silverRateAsync.value ?? 38.0;
     final ratesAsync = ref.watch(exchangeRatesProvider);
     final rates = ratesAsync.value ?? [];
 
@@ -65,46 +65,26 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
       conversionRate = eurPrice > 0 ? eurPrice : 53.0;
     }
 
-    final goldTypes = isTr
-        ? ['Gram', 'Çeyrek', 'Yarım', 'Tam', 'Cumhuriyet', 'Ata']
-        : ['Gram', 'Quarter', 'Half', 'Full', 'Republic', 'Ata'];
+    final silverTypes = isTr
+        ? ['Gram', 'Takı (Ziynet)', 'Külçe']
+        : ['Gram', 'Jewelry', 'Bar'];
 
     double getPurityFactor(String k) {
       switch (k) {
-        case '24': return 1.0;
-        case '22': return 0.916;
-        case '18': return 0.75;
-        case '14': return 0.585;
+        case '999': return 1.0;
+        case '925': return 0.925;
+        case '900': return 0.900;
+        case '800': return 0.800;
         default: return 1.0;
       }
     }
 
-    double getUnitGoldPrice() {
-      if (_goldType == 'Gram') {
-        return goldPrice * getPurityFactor(_purity);
-      }
-      switch (_goldType) {
-        case 'Çeyrek':
-        case 'Quarter':
-          return goldPrice * 1.64;
-        case 'Yarım':
-        case 'Half':
-          return goldPrice * 3.28;
-        case 'Tam':
-        case 'Full':
-          return goldPrice * 6.56;
-        case 'Cumhuriyet':
-        case 'Republic':
-          return goldPrice * 6.68;
-        case 'Ata':
-          return goldPrice * 6.75;
-        default:
-          return goldPrice * getPurityFactor(_purity);
-      }
+    double getUnitSilverPrice() {
+      return silverPrice * getPurityFactor(_purity);
     }
 
-    final unitPriceTRY = getUnitGoldPrice();
-    final quantity = double.tryParse(_goldQuantityController.text) ?? 0.0;
+    final unitPriceTRY = getUnitSilverPrice();
+    final quantity = double.tryParse(_silverQuantityController.text) ?? 0.0;
     final totalValueTRY = quantity * unitPriceTRY;
 
     final unitPriceConverted = unitPriceTRY / conversionRate;
@@ -123,17 +103,17 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
                 onPressed: widget.onBack,
               ),
               const SizedBox(width: 8),
-              Text(isTr ? 'Altın Ekle' : 'Add Gold', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              Text(isTr ? 'Gümüş Ekle' : 'Add Silver', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             ],
           ),
           const SizedBox(height: 16),
-          Text(isTr ? 'ALTIN TÜRÜ' : 'GOLD TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+          Text(isTr ? 'GÜMÜŞ TÜRÜ' : 'SILVER TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 4,
-            children: goldTypes.map((type) {
-              final isSelected = _goldType == type;
+            children: silverTypes.map((type) {
+              final isSelected = _silverType == type;
               return ChoiceChip(
                 label: Text(type, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : (appState.isDark ? Colors.white70 : Colors.black87))),
                 selected: isSelected,
@@ -142,45 +122,43 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
                 onSelected: (val) {
                   if (val) {
                     setState(() {
-                      _goldType = type;
+                      _silverType = type;
                     });
                   }
                 },
               );
             }).toList(),
           ),
-          if (_goldType == 'Gram') ...[
-            const SizedBox(height: 16),
-            Text(isTr ? 'AYAR (SAFLIK DERECESİ)' : 'PURITY (CARAT)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
-            const SizedBox(height: 8),
-            Row(
-              children: ['24', '22', '18', '14'].map((k) {
-                final isSelected = _purity == k;
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: isSelected ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
-                        side: BorderSide(color: isSelected ? const Color(0xFFF3A712) : Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () => setState(() => _purity = k),
-                      child: Text('$k K', style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
+          const SizedBox(height: 16),
+          Text(isTr ? 'AYAR (MİLYEM)' : 'PURITY (MILLIEME)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+          const SizedBox(height: 8),
+          Row(
+            children: ['999', '925', '900', '800'].map((k) {
+              final isSelected = _purity == k;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: isSelected ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
+                      side: BorderSide(color: isSelected ? const Color(0xFFF3A712) : Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
+                    onPressed: () => setState(() => _purity = k),
+                    child: Text(k, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
                   ),
-                );
-              }).toList(),
-            ),
-          ],
+                ),
+              );
+            }).toList(),
+          ),
           const SizedBox(height: 16),
           TextFormField(
-            controller: _goldQuantityController,
+            controller: _silverQuantityController,
             decoration: InputDecoration(
-              labelText: _goldType == 'Gram' ? (isTr ? 'Miktar (Gram)' : 'Quantity (Grams)') : (isTr ? 'Adet' : 'Quantity'),
+              labelText: isTr ? 'Miktar (Gram)' : 'Quantity (Grams)',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              suffixText: _goldType == 'Gram' ? 'gr' : (isTr ? 'adet' : 'pcs'),
+              suffixText: 'gr',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (val) => setState(() {}),
@@ -250,15 +228,13 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
                   if (_formKey.currentState!.validate()) {
                     final asset = AssetModel(
                       id: widget.existingAsset?.id ?? const Uuid().v4(),
-                      name: _goldType == 'Gram' 
-                          ? '${_purity}K $_goldType ${isTr ? "Altın" : "Gold"}'
-                          : '$_goldType ${isTr ? "Altın" : "Gold"}',
-                      category: AssetCategory.gold,
+                      name: '${_purity}K $_silverType ${isTr ? "Gümüş" : "Silver"}',
+                      category: AssetCategory.silver,
                       value: totalValueTRY,
                       details: {
-                        'goldType': _goldType,
+                        'silverType': _silverType,
                         'purity': _purity,
-                        'quantity': _goldQuantityController.text,
+                        'quantity': _silverQuantityController.text,
                         'unitPrice': unitPriceTRY.toString(),
                         'isJewelry': _isJewelry,
                       },

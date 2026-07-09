@@ -158,6 +158,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   children: [
                     _buildRateRow('GOLD', isTr ? 'Gram Altın (24K)' : 'Gold (24K)', Icons.grid_goldenratio_rounded, appState.language, appState),
                     const Divider(height: 1, indent: 56),
+                    _buildRateRow('SILVER', isTr ? 'Gram Gümüş' : 'Gram Silver', Icons.diamond_outlined, appState.language, appState),
+                    const Divider(height: 1, indent: 56),
                     _buildRateRow('USD', 'Amerikan Doları (USD)', Icons.attach_money_rounded, appState.language, appState),
                     const Divider(height: 1, indent: 56),
                     _buildRateRow('EUR', 'Euro (EUR)', Icons.euro_rounded, appState.language, appState),
@@ -222,6 +224,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       if (val != null) {
                         notifier.setCurrency(val);
                         ref.invalidate(exchangeRatesProvider);
+                      }
+                    },
+                  ),
+                ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: const Icon(Icons.scale_rounded, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Nisab Türü' : 'Nisab Type', style: const TextStyle(fontWeight: FontWeight.w500)),
+                  trailing: DropdownButton<NisabType>(
+                    value: appState.nisabType,
+                    underline: const SizedBox(),
+                    items: [
+                      DropdownMenuItem(value: NisabType.gold, child: Text(isTr ? 'Altın (80.18 gr)' : 'Gold (80.18 gr)')),
+                      DropdownMenuItem(value: NisabType.silver, child: Text(isTr ? 'Gümüş (595 gr)' : 'Silver (595 gr)')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        notifier.setNisabType(val);
+                        ref.invalidate(calculatorProvider);
                       }
                     },
                   ),
@@ -336,6 +357,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (code == 'GOLD') {
       iconColor = const Color(0xFFF3A712);
       bgColor = const Color(0xFFFEF3C7);
+    } else if (code == 'SILVER') {
+      iconColor = const Color(0xFF64748B);
+      bgColor = const Color(0xFFE2E8F0);
     } else if (code == 'USD') {
       iconColor = const Color(0xFF10B981);
       bgColor = const Color(0xFFD1FAE5);

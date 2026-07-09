@@ -22,13 +22,14 @@ class AppStateAdapter extends TypeAdapter<AppState> {
       isDark: fields[2] as bool,
       language: fields[3] as Language,
       onboardingComplete: fields[4] as bool,
+      nisabType: fields[5] as NisabType,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppState obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.sect)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class AppStateAdapter extends TypeAdapter<AppState> {
       ..writeByte(3)
       ..write(obj.language)
       ..writeByte(4)
-      ..write(obj.onboardingComplete);
+      ..write(obj.onboardingComplete)
+      ..writeByte(5)
+      ..write(obj.nisabType);
   }
 
   @override
@@ -51,4 +54,3 @@ class AppStateAdapter extends TypeAdapter<AppState> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
-

@@ -9,9 +9,10 @@ import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
 class CashAssetForm extends ConsumerStatefulWidget {
   final AssetCategory category;
+  final AssetModel? existingAsset;
   final VoidCallback onBack;
 
-  const CashAssetForm({super.key, required this.category, required this.onBack});
+  const CashAssetForm({super.key, required this.category, this.existingAsset, required this.onBack});
 
   @override
   ConsumerState<CashAssetForm> createState() => _CashAssetFormState();
@@ -21,6 +22,15 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
   final _formKey = GlobalKey<FormState>();
   String _currency = 'TRY';
   final _cashAmountController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingAsset != null) {
+      _currency = widget.existingAsset!.details?['currency'] ?? 'TRY';
+      _cashAmountController.text = widget.existingAsset!.details?['originalAmount'] ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -166,7 +176,7 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
                     if (widget.category == AssetCategory.debt) categoryName = isTr ? 'Borç' : 'Debt';
 
                     final asset = AssetModel(
-                      id: const Uuid().v4(),
+                      id: widget.existingAsset?.id ?? const Uuid().v4(),
                       name: '$_currency $categoryName',
                       category: widget.category,
                       value: totalValueTRY,
