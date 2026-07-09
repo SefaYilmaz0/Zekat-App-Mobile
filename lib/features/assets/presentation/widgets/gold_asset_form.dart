@@ -205,7 +205,7 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
                 _isJewelry = val;
               });
             },
-            activeColor: const Color(0xFFF3A712),
+            activeThumbColor: const Color(0xFFF3A712),
             contentPadding: EdgeInsets.zero,
           ),
           const SizedBox(height: 16),
