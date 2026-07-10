@@ -7,9 +7,12 @@ import '../../exchange_rates/data/exchange_rate_repository.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
 import '../../exchange_rates/presentation/exchange_rate_provider.dart';
 import '../domain/calculation_result.dart';
+import '../domain/zakat_calculator_service.dart';
+
+final zakatCalculatorServiceProvider = Provider((ref) => ZakatCalculatorService());
 
 final goldRateProvider = FutureProvider<double>((ref) async {
-  final repo = ExchangeRateRepository();
+  final repo = ref.watch(exchangeRateRepositoryProvider);
   final rates = await repo.getRates();
   final goldRate = rates.firstWhere(
     (rate) => rate.currencyCode == 'GOLD',
@@ -25,7 +28,7 @@ final goldRateProvider = FutureProvider<double>((ref) async {
 });
 
 final silverRateProvider = FutureProvider<double>((ref) async {
-  final repo = ExchangeRateRepository();
+  final repo = ref.watch(exchangeRateRepositoryProvider);
   final rates = await repo.getRates();
   final silverRate = rates.firstWhere(
     (rate) => rate.currencyCode == 'SILVER',
@@ -59,6 +62,7 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
   final assetsAsync = ref.watch(assetsProvider);
   final appState = ref.watch(appStateProvider);
   final ratesAsync = ref.watch(exchangeRatesProvider);
+  final calculatorService = ref.watch(zakatCalculatorServiceProvider);
 
   if (goldRateAsync is AsyncLoading || silverRateAsync is AsyncLoading || assetsAsync is AsyncLoading || ratesAsync is AsyncLoading) {
     return const AsyncValue.loading();
@@ -76,85 +80,14 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
   final assets = assetsAsync.value ?? [];
   final rates = ratesAsync.value ?? [];
 
-  double conversionRate = 1.0;
-  if (appState.currency == AppCurrency.usd) {
-    final usdRate = rates.firstWhere(
-      (r) => r.currencyCode == 'USD',
-      orElse: () => ExchangeRateModel(currencyCode: 'USD', currencyName: 'USD', buyingPrice: 46.0, sellingPrice: 46.0, lastUpdate: DateTime.now()),
-    );
-    conversionRate = usdRate.buyingPrice > 0 ? usdRate.buyingPrice : 46.0;
-  } else if (appState.currency == AppCurrency.eur) {
-    final eurRate = rates.firstWhere(
-      (r) => r.currencyCode == 'EUR',
-      orElse: () => ExchangeRateModel(currencyCode: 'EUR', currencyName: 'EUR', buyingPrice: 53.0, sellingPrice: 53.0, lastUpdate: DateTime.now()),
-    );
-    conversionRate = eurRate.buyingPrice > 0 ? eurRate.buyingPrice : 53.0;
-  }
+  final result = calculatorService.calculate(
+    appState: appState,
+    assets: assets,
+    goldRate: goldRateRaw,
+    silverRate: silverRateRaw,
+    exchangeRates: rates,
+  );
 
-  double totalAssets = 0;
-  double totalDebts = 0;
-
-  for (var asset in assets) {
-    if (asset.category == AssetCategory.debt) {
-      totalDebts += asset.value;
-    } else {
-      if ((asset.category == AssetCategory.gold || asset.category == AssetCategory.silver) &&
-          asset.details?['isJewelry'] == true &&
-          appState.sect != Sect.hanefi) {
-        continue;
-      }
-      totalAssets += asset.value;
-    }
-  }
-
-  double netZakatableAmount = totalAssets;
-
-  // In Hanefi and Hanbeli, debts are deducted from total assets.
-  if (appState.sect == Sect.hanefi || appState.sect == Sect.hanbeli) {
-    netZakatableAmount = totalAssets - totalDebts;
-  }
-
-  if (netZakatableAmount < 0) {
-    netZakatableAmount = 0;
-  }
-
-  final nisabThreshold = appState.nisabType == NisabType.silver
-      ? 595.0 * silverRateRaw
-      : 80.18 * goldRateRaw;
-  final isNisabReached = netZakatableAmount >= nisabThreshold;
-
-  double zakatToPay = 0;
-  if (isNisabReached) {
-    double tempZakat = 0;
-    for (var asset in assets) {
-      if (asset.category == AssetCategory.debt) continue;
-      if ((asset.category == AssetCategory.gold || asset.category == AssetCategory.silver) &&
-          asset.details?['isJewelry'] == true &&
-          appState.sect != Sect.hanefi) {
-        continue;
-      }
-      
-      if (asset.category == AssetCategory.agriculture) {
-        final irrigation = asset.details?['irrigationType'] ?? 'natural';
-        final rate = irrigation == 'natural' ? 0.10 : 0.05;
-        tempZakat += asset.value * rate;
-      } else {
-        tempZakat += asset.value * 0.025;
-      }
-    }
-    tempZakat -= totalDebts * 0.025;
-    zakatToPay = tempZakat < 0.0 ? 0.0 : tempZakat;
-  }
-
-  return AsyncValue.data(CalculationResult(
-    totalAssets: totalAssets / conversionRate,
-    totalDebts: totalDebts / conversionRate,
-    netZakatableAmount: netZakatableAmount / conversionRate,
-    nisabThreshold: nisabThreshold / conversionRate,
-    isNisabReached: isNisabReached,
-    zakatToPay: zakatToPay / conversionRate,
-    goldRate: goldRateRaw / conversionRate,
-    conversionRate: conversionRate,
-  ));
+  return AsyncValue.data(result);
 });
 

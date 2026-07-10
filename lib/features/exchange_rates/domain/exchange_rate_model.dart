@@ -1,8 +1,22 @@
+import 'package:hive_flutter/hive_flutter.dart';
+
+part 'exchange_rate_model.g.dart';
+
+@HiveType(typeId: 8)
 class ExchangeRateModel {
+  @HiveField(0)
   final String currencyCode;
+
+  @HiveField(1)
   final String currencyName;
+
+  @HiveField(2)
   final double buyingPrice;
+
+  @HiveField(3)
   final double sellingPrice;
+
+  @HiveField(4)
   final DateTime lastUpdate;
 
   ExchangeRateModel({

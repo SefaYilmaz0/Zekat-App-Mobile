@@ -12,6 +12,7 @@ import 'core/providers/app_state_provider.dart';
 import 'core/presentation/main_layout.dart';
 import 'features/assets/domain/asset_model.dart';
 import 'features/history/domain/history_model.dart';
+import 'features/exchange_rates/domain/exchange_rate_model.dart';
 
 import 'features/onboarding/presentation/welcome_screen.dart';
 import 'features/onboarding/presentation/sect_selection_screen.dart';
@@ -30,10 +31,12 @@ void main() async {
   Hive.registerAdapter(NisabTypeAdapter());
   Hive.registerAdapter(AppStateAdapter());
   Hive.registerAdapter(HistoryModelAdapter());
+  Hive.registerAdapter(ExchangeRateModelAdapter());
 
   await Hive.openBox<AppState>('appState');
   await Hive.openBox<AssetModel>('assets');
   await Hive.openBox<HistoryModel>('history');
+  await Hive.openBox<ExchangeRateModel>('exchange_rates');
   await Hive.openBox('settings');
 
   runApp(const ProviderScope(child: ZekatApp()));
