@@ -38,28 +38,66 @@ class ZakatCalculatorService {
       conversionRate = eurRate.buyingPrice > 0 ? eurRate.buyingPrice : 53.0;
     }
 
-    double totalAssets = 0;
+    double totalZakatableAssets = 0; // Sadece nakit/altın/ticaret malları havuzu
     double totalDebts = 0;
+    double agricultureZakat = 0;
+    double saimeLivestockZakat = 0;
 
     for (var asset in assets) {
       if (asset.category == AssetCategory.debt) {
         totalDebts += asset.value;
+      } else if (asset.category == AssetCategory.agriculture) {
+        // Tarım ürünleri kendi içinde hesaplanır, genel havuza (totalAssets) katılmaz.
+        final irrigation = asset.details?['irrigationType'] ?? 'natural';
+        final rate = irrigation == 'natural' ? 0.10 : 0.05;
+        agricultureZakat += asset.value * rate;
+      } else if (asset.category == AssetCategory.livestock) {
+        final isTrade = asset.details?['isTrade'] == 'true' || asset.details?['isTrade'] == true;
+        if (isTrade) {
+          totalZakatableAssets += asset.value;
+        } else {
+          // Saime Hayvan Hesabı
+          final type = asset.details?['livestockType'] ?? '';
+          final quantity = int.tryParse(asset.details?['quantity']?.toString() ?? '0') ?? 0;
+          final unitPriceStr = asset.details?['unitPrice']?.toString() ?? '0';
+          final unitPrice = double.tryParse(unitPriceStr) ?? 0.0;
+          
+          int animalZakatCount = 0;
+          double customZakatValue = 0;
+
+          if (type == 'Koyun/Keçi' || type == 'Sheep/Goat') {
+            if (quantity >= 40 && quantity <= 120) animalZakatCount = 1;
+            else if (quantity >= 121 && quantity <= 200) animalZakatCount = 2;
+            else if (quantity >= 201 && quantity <= 399) animalZakatCount = 3;
+            else if (quantity >= 400) animalZakatCount = quantity ~/ 100;
+            customZakatValue = animalZakatCount * unitPrice;
+          } else if (type == 'Sığır/Manda' || type == 'Cattle/Buffalo') {
+            animalZakatCount = quantity ~/ 30;
+            customZakatValue = animalZakatCount * unitPrice;
+          } else if (type == 'Deve' || type == 'Camel') {
+            animalZakatCount = quantity ~/ 5;
+            customZakatValue = animalZakatCount * (unitPrice / 10);
+          }
+
+          saimeLivestockZakat += customZakatValue;
+        }
       } else {
+        // Altın, Gümüş, Nakit
         if ((asset.category == AssetCategory.gold ||
                 asset.category == AssetCategory.silver) &&
             asset.details?['isJewelry'] == true &&
             appState.sect != Sect.hanefi) {
           continue; // Şafii, Maliki, Hanbeli mezheplerinde kadının kullanımındaki takı zekata tabi değildir.
         }
-        totalAssets += asset.value;
+        totalZakatableAssets += asset.value;
       }
     }
 
-    double netZakatableAmount = totalAssets;
+    double netZakatableAmount = totalZakatableAssets;
 
-    // Hanefi ve Hanbeli mezheplerinde borçlar toplam varlıktan düşülür.
+    // Hanefi ve Hanbeli mezheplerinde borçlar nisap hesabından düşülür.
     if (appState.sect == Sect.hanefi || appState.sect == Sect.hanbeli) {
-      netZakatableAmount = totalAssets - totalDebts;
+      netZakatableAmount = totalZakatableAssets - totalDebts;
     }
 
     if (netZakatableAmount < 0) {
@@ -72,33 +110,35 @@ class ZakatCalculatorService {
     final isNisabReached = netZakatableAmount >= nisabThreshold;
 
     double zakatToPay = 0;
+    
+    // Altın, gümüş, para ve ticaret mallarının zekatı
     if (isNisabReached) {
-      double tempZakat = 0;
-      for (var asset in assets) {
-        if (asset.category == AssetCategory.debt) continue;
-        if ((asset.category == AssetCategory.gold ||
-                asset.category == AssetCategory.silver) &&
-            asset.details?['isJewelry'] == true &&
-            appState.sect != Sect.hanefi) {
-          continue;
-        }
-
-        if (asset.category == AssetCategory.agriculture) {
-          final irrigation = asset.details?['irrigationType'] ?? 'natural';
-          final rate = irrigation == 'natural' ? 0.10 : 0.05;
-          tempZakat += asset.value * rate;
-        } else {
-          tempZakat += asset.value * 0.025;
-        }
+      zakatToPay = totalZakatableAssets * 0.025;
+      
+      // Borçların zekattan düşülmesi (Sadece Hanefi ve Hanbeli)
+      if (appState.sect == Sect.hanefi || appState.sect == Sect.hanbeli) {
+        zakatToPay -= totalDebts * 0.025;
       }
       
-      // Borçların zekatı (eksi olarak yansıtılır)
-      tempZakat -= totalDebts * 0.025;
-      zakatToPay = tempZakat < 0.0 ? 0.0 : tempZakat;
+      if (zakatToPay < 0.0) {
+        zakatToPay = 0.0;
+      }
+    }
+
+    // Tarım ve Saime Hayvan zekatları kendi nisaplarına sahip oldukları varsayılarak doğrudan eklenir
+    zakatToPay += agricultureZakat;
+    zakatToPay += saimeLivestockZakat;
+
+    // Hesaplama sonucunda, UI'da gösterilen totalAssets'in doğru kalması için
+    double totalDisplayAssets = 0;
+    for (var a in assets) {
+      if (a.category != AssetCategory.debt) {
+        totalDisplayAssets += a.value;
+      }
     }
 
     return CalculationResult(
-      totalAssets: totalAssets / conversionRate,
+      totalAssets: totalDisplayAssets / conversionRate,
       totalDebts: totalDebts / conversionRate,
       netZakatableAmount: netZakatableAmount / conversionRate,
       nisabThreshold: nisabThreshold / conversionRate,

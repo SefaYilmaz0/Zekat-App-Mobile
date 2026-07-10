@@ -22,6 +22,7 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
   String _livestockType = 'Koyun/Keçi';
   final _livestockQuantityController = TextEditingController();
   final _livestockUnitPriceController = TextEditingController();
+  bool _isTrade = false;
   bool _isInitialized = false;
 
   @override
@@ -30,6 +31,7 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
     if (widget.existingAsset != null) {
       _livestockType = widget.existingAsset!.details?['livestockType'] ?? 'Koyun/Keçi';
       _livestockQuantityController.text = widget.existingAsset!.details?['quantity'] ?? '';
+      _isTrade = widget.existingAsset!.details?['isTrade'] == 'true';
     }
   }
 
@@ -118,6 +120,53 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
             }).toList(),
           ),
           const SizedBox(height: 16),
+          Text(isTr ? 'YETİŞTİRME AMACI' : 'PURPOSE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: !_isTrade ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
+                      side: BorderSide(color: !_isTrade ? const Color(0xFFF3A712) : Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    onPressed: () => setState(() => _isTrade = false),
+                    child: Column(
+                      children: [
+                        Text(isTr ? 'Saime' : 'Grazing', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: !_isTrade ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
+                        Text(isTr ? 'Süt/Üreme' : 'Milk/Breeding', style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: _isTrade ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
+                      side: BorderSide(color: _isTrade ? const Color(0xFFF3A712) : Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    onPressed: () => setState(() => _isTrade = true),
+                    child: Column(
+                      children: [
+                        Text(isTr ? 'Ticaret' : 'Trade', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: _isTrade ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
+                        Text(isTr ? 'Alım-Satım' : 'Buying-Selling', style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           TextFormField(
             controller: _livestockQuantityController,
             decoration: InputDecoration(
@@ -170,6 +219,7 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
                         'livestockType': _livestockType,
                         'quantity': _livestockQuantityController.text,
                         'unitPrice': (unitPriceConverted * conversionRate).toString(),
+                        'isTrade': _isTrade.toString(),
                       },
                     );
                     final box = Hive.box<AssetModel>('assets');
