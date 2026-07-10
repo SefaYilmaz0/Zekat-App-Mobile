@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../assets/domain/asset_model.dart';
-import '../../exchange_rates/data/exchange_rate_repository.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
 import '../../exchange_rates/presentation/exchange_rate_provider.dart';
 import '../domain/calculation_result.dart';

@@ -66,10 +66,15 @@ class ZakatCalculatorService {
           double customZakatValue = 0;
 
           if (type == 'Koyun/Keçi' || type == 'Sheep/Goat') {
-            if (quantity >= 40 && quantity <= 120) animalZakatCount = 1;
-            else if (quantity >= 121 && quantity <= 200) animalZakatCount = 2;
-            else if (quantity >= 201 && quantity <= 399) animalZakatCount = 3;
-            else if (quantity >= 400) animalZakatCount = quantity ~/ 100;
+            if (quantity >= 40 && quantity <= 120) {
+              animalZakatCount = 1;
+            } else if (quantity >= 121 && quantity <= 200) {
+              animalZakatCount = 2;
+            } else if (quantity >= 201 && quantity <= 399) {
+              animalZakatCount = 3;
+            } else if (quantity >= 400) {
+              animalZakatCount = quantity ~/ 100;
+            }
             customZakatValue = animalZakatCount * unitPrice;
           } else if (type == 'Sığır/Manda' || type == 'Cattle/Buffalo') {
             animalZakatCount = quantity ~/ 30;
