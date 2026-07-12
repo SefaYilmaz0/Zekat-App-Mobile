@@ -206,6 +206,66 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Zakat Anniversary Countdown Card
+                ValueListenableBuilder<Box>(
+                  valueListenable: Hive.box('settings').listenable(keys: ['zakat_hijri_month', 'zakat_hijri_day']),
+                  builder: (context, box, child) {
+                    final hMonth = box.get('zakat_hijri_month') as int?;
+                    final hDay = box.get('zakat_hijri_day') as int?;
+                    if (hMonth == null || hDay == null) return const SizedBox.shrink();
+
+                    final daysLeft = HijriDateHelper.getDaysUntilNextZakat(hMonth, hDay) ?? 0;
+                    final totalDays = 354; // Hicri yıl ortalama
+                    final progress = (1 - (daysLeft / totalDays)).clamp(0.0, 1.0);
+                    final monthName = HijriDateHelper.getHijriMonthName(hMonth, appState.language);
+                    final isUrgent = daysLeft <= 30;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 24),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isUrgent ? Colors.red.withValues(alpha: 0.3) : (appState.isDark ? Colors.white10 : Colors.transparent)),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.event_available_rounded, color: isUrgent ? Colors.red : const Color(0xFFF3A712), size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(isTr ? 'Zekat Yıl Dönümü' : 'Zakat Anniversary', style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              Text('$hDay $monthName', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(isTr ? 'Kalan Süre:' : 'Time Left:', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                              Text(isTr ? '$daysLeft Gün' : '$daysLeft Days', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isUrgent ? Colors.red : Theme.of(context).textTheme.bodyLarge?.color)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 6,
+                            backgroundColor: Colors.grey.shade200,
+                            valueColor: AlwaysStoppedAnimation<Color>(isUrgent ? Colors.red : const Color(0xFFF3A712)),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
                 // Nisab Progress Card (White)
                 Container(
                   padding: const EdgeInsets.all(16),

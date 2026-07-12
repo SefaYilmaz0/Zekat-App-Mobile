@@ -7,6 +7,7 @@ import '../../../core/domain/enums.dart';
 import '../../../core/domain/app_state.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/utils/hijri_date_helper.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../history/domain/history_model.dart';
 import '../../exchange_rates/data/exchange_rate_repository.dart';
@@ -60,6 +61,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final isTr = appState.language == Language.tr;
     final settingsBox = Hive.box('settings');
     final currencyFormat = settingsBox.get('currency_format', defaultValue: 'auto');
+    final zakatMonth = settingsBox.get('zakat_hijri_month') as int?;
+    final zakatDay = settingsBox.get('zakat_hijri_day') as int?;
+    final hasZakatDate = zakatMonth != null && zakatDay != null;
+    final zakatDateDisplay = hasZakatDate 
+        ? '$zakatDay ${HijriDateHelper.getHijriMonthName(zakatMonth, appState.language)}' 
+        : (isTr ? 'Belirlenmedi' : 'Not Set');
 
     final privacyTitle = isTr ? 'Gizlilik Politikası' : 'Privacy Policy';
     final privacyContent = isTr
@@ -246,6 +253,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       }
                     },
                   ),
+                ),
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: const Icon(Icons.calendar_month_outlined, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Zekat Yıl Dönümü' : 'Zakat Anniversary', style: const TextStyle(fontWeight: FontWeight.w500)),
+                  subtitle: Text(isTr ? 'Hicri Takvime Göre' : 'Based on Hijri Calendar', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(zakatDateDisplay, style: TextStyle(color: hasZakatDate ? const Color(0xFFF3A712) : Colors.grey, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                    ],
+                  ),
+                  onTap: () => _showZakatDateDialog(context, settingsBox, isTr, appState.language, zakatMonth, zakatDay),
                 ),
                 const Divider(height: 1, indent: 56),
                 ListTile(
@@ -439,6 +461,96 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Text(isTr ? 'Evet, Sıfırla' : 'Yes, Reset'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showZakatDateDialog(BuildContext context, Box settingsBox, bool isTr, Language lang, int? currentMonth, int? currentDay) {
+    int selectedMonth = currentMonth ?? 9; // Default to Ramadan
+    int selectedDay = currentDay ?? 1;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(isTr ? 'Zekat Yıl Dönümü' : 'Zakat Anniversary', style: const TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isTr ? 'Zekatınızı her yıl ödediğiniz Hicri tarihi seçin. (Örn: 15 Ramazan)' : 'Select the Hijri date you pay your Zakat every year.',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: DropdownButton<int>(
+                          value: selectedDay,
+                          isExpanded: true,
+                          items: List.generate(30, (i) => i + 1).map((d) => DropdownMenuItem(value: d, child: Text('$d'))).toList(),
+                          onChanged: (val) {
+                            if (val != null) setStateDialog(() => selectedDay = val);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButton<int>(
+                          value: selectedMonth,
+                          isExpanded: true,
+                          items: List.generate(12, (i) => i + 1).map((m) => DropdownMenuItem(value: m, child: Text(HijriDateHelper.getHijriMonthName(m, lang)))).toList(),
+                          onChanged: (val) {
+                            if (val != null) setStateDialog(() => selectedMonth = val);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (currentMonth != null) ...[
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () {
+                        settingsBox.delete('zakat_hijri_month');
+                        settingsBox.delete('zakat_hijri_day');
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                      label: Text(isTr ? 'Tarihi Temizle' : 'Clear Date', style: const TextStyle(color: Colors.red)),
+                    )
+                  ]
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(isTr ? 'İptal' : 'Cancel', style: const TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF3A712),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    settingsBox.put('zakat_hijri_month', selectedMonth);
+                    settingsBox.put('zakat_hijri_day', selectedDay);
+                    setState(() {});
+                    Navigator.pop(context);
+                  },
+                  child: Text(isTr ? 'Kaydet' : 'Save'),
+                ),
+              ],
+            );
+          }
         );
       },
     );
