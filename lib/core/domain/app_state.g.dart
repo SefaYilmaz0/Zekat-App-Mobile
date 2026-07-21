@@ -17,12 +17,14 @@ class AppStateAdapter extends TypeAdapter<AppState> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return AppState(
-      sect: fields[0] as Sect,
-      currency: fields[1] as AppCurrency,
-      isDark: fields[2] as bool,
-      language: fields[3] as Language,
-      onboardingComplete: fields[4] as bool,
-      nisabType: fields[5] as NisabType,
+      sect: fields[0] == null ? Sect.hanefi : fields[0] as Sect,
+      currency: fields[1] == null
+          ? AppCurrency.tryCurrency
+          : fields[1] as AppCurrency,
+      isDark: fields[2] == null ? false : fields[2] as bool,
+      language: fields[3] == null ? Language.tr : fields[3] as Language,
+      onboardingComplete: fields[4] == null ? false : fields[4] as bool,
+      nisabType: fields[5] == null ? NisabType.gold : fields[5] as NisabType,
     );
   }
 

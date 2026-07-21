@@ -5,22 +5,22 @@ part 'app_state.g.dart';
 
 @HiveType(typeId: 5)
 class AppState extends HiveObject {
-  @HiveField(0)
+  @HiveField(0, defaultValue: Sect.hanefi)
   Sect sect;
 
-  @HiveField(1)
+  @HiveField(1, defaultValue: AppCurrency.tryCurrency)
   AppCurrency currency;
 
-  @HiveField(2)
+  @HiveField(2, defaultValue: false)
   bool isDark;
 
-  @HiveField(3)
+  @HiveField(3, defaultValue: Language.tr)
   Language language;
 
-  @HiveField(4)
+  @HiveField(4, defaultValue: false)
   bool onboardingComplete;
 
-  @HiveField(5)
+  @HiveField(5, defaultValue: NisabType.gold)
   NisabType nisabType;
 
   AppState({
