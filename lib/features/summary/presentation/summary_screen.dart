@@ -12,6 +12,8 @@ import '../../assets/presentation/widgets/add_asset_dialog.dart';
 import '../services/pdf_report_service.dart';
 import 'widgets/pdf_preview_screen.dart';
 import '../../../core/theme.dart';
+import '../../../core/constants/currency_constants.dart';
+import '../../exchange_rates/presentation/exchange_rate_provider.dart';
 
 class GridPatternPainter extends CustomPainter {
   @override
@@ -77,6 +79,8 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
     final calcAsync = ref.watch(calculatorProvider);
     final calc = calcAsync.value;
     final assetsAsync = ref.watch(assetsProvider);
+    final ratesAsync = ref.watch(exchangeRatesProvider);
+    final rates = ratesAsync.value ?? [];
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -405,7 +409,20 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('${appState.currency.symbol}${formatCurrency(asset.value / calc.conversionRate, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                Builder(
+                                  builder: (context) {
+                                    final dynamicValue = CurrencyConstants.calculateDynamicAssetValueTRY(
+                                      asset: asset,
+                                      goldRate: calc.goldRate * calc.conversionRate,
+                                      silverRate: calc.silverRate * calc.conversionRate,
+                                      exchangeRates: rates,
+                                    ) / calc.conversionRate;
+                                    return Text(
+                                      '${appState.currency.symbol}${formatCurrency(dynamicValue, appState.language)}',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color),
+                                    );
+                                  },
+                                ),
                                 IconButton(
                                   icon: Icon(Icons.edit_outlined, color: Colors.grey.shade400, size: 20),
                                   onPressed: () {
@@ -482,10 +499,32 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                                 child: Icon(_getIconForCategory(asset.category), color: Colors.red, size: 20),
                               ),
                               title: Text(asset.name, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                              subtitle: asset.details?['isShortTerm'] == false
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        isTr ? 'Uzun Vadeli (Düşülmez)' : 'Long-Term (Not Deducted)',
+                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange.shade700),
+                                      ),
+                                    )
+                                  : null,
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('- ${appState.currency.symbol}${formatCurrency(asset.value / calc.conversionRate, appState.language)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
+                                  Builder(
+                                    builder: (context) {
+                                      final dynamicValue = CurrencyConstants.calculateDynamicAssetValueTRY(
+                                        asset: asset,
+                                        goldRate: calc.goldRate * calc.conversionRate,
+                                        silverRate: calc.silverRate * calc.conversionRate,
+                                        exchangeRates: rates,
+                                      ) / calc.conversionRate;
+                                      return Text(
+                                        '- ${appState.currency.symbol}${formatCurrency(dynamicValue, appState.language)}',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
+                                      );
+                                    },
+                                  ),
                                   IconButton(
                                     icon: Icon(Icons.edit_outlined, color: Colors.grey.shade400, size: 20),
                                     onPressed: () {
@@ -534,8 +573,12 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                       Expanded(
                         child: Text(
                           isTr 
-                            ? "Zekat hesaplaması, mevcut varlıklarınızdan borçlarınız düşüldükten sonra kalan net varlığın %2.5'i (1/40) üzerinden yapılmıştır."
-                            : "Zakat calculation is based on 2.5% (1/40) of your net wealth after deducting your debts from your assets.",
+                            ? (appState.sect == Sect.hanefi || appState.sect == Sect.hanbeli
+                                ? "Zekat hesaplaması, ${appState.sect.name.toUpperCase()} mezhebine uygun olarak mevcut varlıklarınızdan vadesi gelmiş borçlarınız düşüldükten sonra kalan net matrahın %2.5'i (1/40) üzerinden yapılmıştır."
+                                : "Zekat hesaplaması, ${appState.sect.name.toUpperCase()} mezhebine uygun olarak elde mevcut zekata tabi varlıklar üzerinden doğrudan (borçlar düşülmeksizin) %2.5 (1/40) olarak yapılmıştır.")
+                            : (appState.sect == Sect.hanefi || appState.sect == Sect.hanbeli
+                                ? "Zakat calculation is based on 2.5% (1/40) of your net wealth after deducting due debts, according to the ${appState.sect.name.toUpperCase()} school."
+                                : "Zakat calculation is based on 2.5% (1/40) directly on eligible assets without deducting debts, according to the ${appState.sect.name.toUpperCase()} school."),
                           style: const TextStyle(color: Colors.white, fontSize: 12, height: 1.5),
                         ),
                       )

@@ -4,6 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/domain/app_state.dart';
+import '../../../../core/constants/currency_constants.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/hijri_date_helper.dart';
 import '../../assets/domain/asset_model.dart';
@@ -256,9 +257,15 @@ class PdfReportService {
                                 asset.category == AssetCategory.silver) &&
                             asset.details?['isJewelry'] == true &&
                             appState.sect != Sect.hanefi;
+                    final dynamicAssetVal = CurrencyConstants.calculateDynamicAssetValueTRY(
+                      asset: asset,
+                      goldRate: calc.goldRate * calc.conversionRate,
+                      silverRate: calc.silverRate * calc.conversionRate,
+                      exchangeRates: [],
+                    ) / calc.conversionRate;
                     final valueStr = isJewelryExempt
                         ? (isTr ? 'Muaf' : 'Exempt')
-                        : '$sym${formatCurrency(asset.value / calc.conversionRate, appState.language)}';
+                        : '$sym${formatCurrency(dynamicAssetVal, appState.language)}';
                     return pw.TableRow(
                       children: [
                         pw.Padding(
@@ -328,21 +335,31 @@ class PdfReportService {
                     ],
                   ),
                   ...myDebts.map((debt) {
+                    final dynamicDebtVal = CurrencyConstants.calculateDynamicAssetValueTRY(
+                      asset: debt,
+                      goldRate: calc.goldRate * calc.conversionRate,
+                      silverRate: calc.silverRate * calc.conversionRate,
+                      exchangeRates: [],
+                    ) / calc.conversionRate;
+                    final isShortTerm = debt.details?['isShortTerm'] != false;
+                    final debtLabel = !isShortTerm
+                        ? '${debt.name} (${isTr ? "Uzun Vadeli - Düşülmez" : "Long-Term - Not Deducted"})'
+                        : debt.name;
                     return pw.TableRow(
                       children: [
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(6),
-                          child: pw.Text(debt.name,
+                          child: pw.Text(debtLabel,
                               style: const pw.TextStyle(fontSize: 10)),
                         ),
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(6),
                           child: pw.Text(
-                              '- $sym${formatCurrency(debt.value / calc.conversionRate, appState.language)}',
+                              '- $sym${formatCurrency(dynamicDebtVal, appState.language)}',
                               style: pw.TextStyle(
                                   fontSize: 10,
                                   fontWeight: pw.FontWeight.bold,
-                                  color: PdfColors.red700)),
+                                  color: isShortTerm ? PdfColors.red700 : PdfColors.grey600)),
                         ),
                       ],
                     );
@@ -358,8 +375,12 @@ class PdfReportService {
               alignment: pw.Alignment.center,
               child: pw.Text(
                 isTr
-                    ? 'Bu rapor ZekatApp uygulaması ile üretilmiştir. Kesin fetvalar için yetkili mercilere danışınız.'
-                    : 'This report was generated with ZakatApp. Consult official authorities for final rulings.',
+                    ? (appState.sect == Sect.hanefi || appState.sect == Sect.hanbeli
+                        ? 'Bu rapor ZekatApp ile üretilmiştir. ${appState.sect.name.toUpperCase()} mezhebine göre vadesi gelmiş borçlar matrahtan düşülmüştür.'
+                        : 'Bu rapor ZekatApp ile üretilmiştir. ${appState.sect.name.toUpperCase()} mezhebine göre borçlar düşülmeksizin zekat hesaplanmıştır.')
+                    : (appState.sect == Sect.hanefi || appState.sect == Sect.hanbeli
+                        ? 'Generated with ZakatApp according to ${appState.sect.name.toUpperCase()} school (due debts deducted).'
+                        : 'Generated with ZakatApp according to ${appState.sect.name.toUpperCase()} school (debts not deducted).'),
                 style: const pw.TextStyle(
                     fontSize: 8,
                     color: PdfColors.grey600,

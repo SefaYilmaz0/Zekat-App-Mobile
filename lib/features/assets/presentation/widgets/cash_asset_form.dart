@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
+import '../../../../core/constants/currency_constants.dart';
 import '../../domain/asset_model.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
@@ -22,6 +23,7 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
   final _formKey = GlobalKey<FormState>();
   String _currency = 'TRY';
   final _cashAmountController = TextEditingController();
+  bool _isShortTerm = true;
 
   @override
   void initState() {
@@ -29,6 +31,7 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
     if (widget.existingAsset != null) {
       _currency = widget.existingAsset!.details?['currency'] ?? 'TRY';
       _cashAmountController.text = widget.existingAsset!.details?['originalAmount'] ?? '';
+      _isShortTerm = widget.existingAsset!.details?['isShortTerm'] != false;
     }
   }
 
@@ -45,24 +48,9 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
     final ratesAsync = ref.watch(exchangeRatesProvider);
     final rates = ratesAsync.value ?? [];
 
-    double usdPrice = 46.0;
-    double eurPrice = 53.0;
+    final conversionRate = CurrencyConstants.getConversionRate(appState.currency, rates);
+    final currentRate = CurrencyConstants.getCurrencyToTryRate(_currency, rates);
 
-    for (var r in rates) {
-      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
-      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
-    }
-
-    double conversionRate = 1.0;
-    if (appState.currency == AppCurrency.usd) {
-      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
-    } else if (appState.currency == AppCurrency.eur) {
-      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
-    }
-
-    final currentRate = _currency == 'USD'
-        ? usdPrice
-        : (_currency == 'EUR' ? eurPrice : 1.0);
     final amount = double.tryParse(_cashAmountController.text) ?? 0.0;
     final totalValueTRY = amount * currentRate;
     final totalValueConverted = totalValueTRY / conversionRate;
@@ -132,6 +120,66 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
             onChanged: (val) => setState(() {}),
             validator: (val) => val == null || val.isEmpty ? (isTr ? 'Lütfen geçerli bir tutar girin' : 'Please enter a valid amount') : null,
           ),
+          if (widget.category == AssetCategory.debt) ...[
+            const SizedBox(height: 16),
+            Text(isTr ? 'BORÇ VADESİ' : 'DEBT TERM', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: _isShortTerm ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
+                        side: BorderSide(color: _isShortTerm ? const Color(0xFFF3A712) : Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      onPressed: () => setState(() => _isShortTerm = true),
+                      child: Column(
+                        children: [
+                          Text(isTr ? 'Kısa Vadeli' : 'Short-Term', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: _isShortTerm ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
+                          Text(isTr ? '1 Yıl İçinde (Düşülür)' : 'Due in 1 Yr (Deducted)', style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: !_isShortTerm ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
+                        side: BorderSide(color: !_isShortTerm ? const Color(0xFFF3A712) : Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      onPressed: () => setState(() => _isShortTerm = false),
+                      child: Column(
+                        children: [
+                          Text(isTr ? 'Uzun Vadeli' : 'Long-Term', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: !_isShortTerm ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
+                          Text(isTr ? '1 Yıldan Sonra (Düşülmez)' : '> 1 Yr (Not Deducted)', style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isTr
+                  ? (_isShortTerm
+                      ? 'Vadesi gelmiş veya 1 yıl içinde ödenecek borçlar Hanefi ve Hanbeli mezheplerinde matrahtan düşülür.'
+                      : 'Fıkha göre uzun vadeli konut/taşıt gibi borçların vadesi gelmemiş sonraki yılları zekat matrahından düşülmez.')
+                  : (_isShortTerm
+                      ? 'Debts due within 1 year are deducted from the nisab in Hanafi and Hanbali schools.'
+                      : 'According to fiqh, long-term installments beyond the current year are not deducted.'),
+              style: TextStyle(fontSize: 10, color: Colors.grey.shade500, height: 1.3),
+            ),
+          ],
           if (_currency != 'TRY') ...[
             const SizedBox(height: 16),
             Container(
@@ -173,7 +221,11 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
                     String categoryName = '';
                     if (widget.category == AssetCategory.cash) categoryName = isTr ? 'Nakit' : 'Cash';
                     if (widget.category == AssetCategory.receivable) categoryName = isTr ? 'Alacak' : 'Receivable';
-                    if (widget.category == AssetCategory.debt) categoryName = isTr ? 'Borç' : 'Debt';
+                    if (widget.category == AssetCategory.debt) {
+                      categoryName = _isShortTerm
+                          ? (isTr ? 'Kısa Vadeli Borç' : 'Short-Term Debt')
+                          : (isTr ? 'Uzun Vadeli Borç' : 'Long-Term Debt');
+                    }
 
                     final asset = AssetModel(
                       id: widget.existingAsset?.id ?? const Uuid().v4(),
@@ -184,6 +236,7 @@ class _CashAssetFormState extends ConsumerState<CashAssetForm> {
                         'currency': _currency,
                         'originalAmount': _cashAmountController.text,
                         'exchangeRate': currentRate,
+                        'isShortTerm': _isShortTerm,
                       },
                     );
                     final box = Hive.box<AssetModel>('assets');

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../../core/constants/currency_constants.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../../assets/domain/asset_model.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
@@ -17,12 +18,12 @@ final goldRateProvider = FutureProvider<double>((ref) async {
     orElse: () => ExchangeRateModel(
       currencyCode: 'GOLD',
       currencyName: 'Gram Altın',
-      buyingPrice: 2500.0, // Varsayılan güvenlik değeri
-      sellingPrice: 2500.0,
+      buyingPrice: CurrencyConstants.defaultGoldRate,
+      sellingPrice: CurrencyConstants.defaultGoldRate,
       lastUpdate: DateTime.now(),
     ),
   );
-  return goldRate.buyingPrice;
+  return goldRate.buyingPrice > 0 ? goldRate.buyingPrice : CurrencyConstants.defaultGoldRate;
 });
 
 final silverRateProvider = FutureProvider<double>((ref) async {
@@ -33,12 +34,12 @@ final silverRateProvider = FutureProvider<double>((ref) async {
     orElse: () => ExchangeRateModel(
       currencyCode: 'SILVER',
       currencyName: 'Gram Gümüş',
-      buyingPrice: 38.0, // Varsayılan güvenlik değeri
-      sellingPrice: 38.0,
+      buyingPrice: CurrencyConstants.defaultSilverRate,
+      sellingPrice: CurrencyConstants.defaultSilverRate,
       lastUpdate: DateTime.now(),
     ),
   );
-  return silverRate.buyingPrice;
+  return silverRate.buyingPrice > 0 ? silverRate.buyingPrice : CurrencyConstants.defaultSilverRate;
 });
 
 // A stream of assets to trigger recalculations when assets change
@@ -73,8 +74,8 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
     return AsyncValue.error(silverRateAsync.error!, silverRateAsync.stackTrace!);
   }
 
-  final goldRateRaw = goldRateAsync.value ?? 0.0;
-  final silverRateRaw = silverRateAsync.value ?? 0.0;
+  final goldRateRaw = goldRateAsync.value ?? CurrencyConstants.defaultGoldRate;
+  final silverRateRaw = silverRateAsync.value ?? CurrencyConstants.defaultSilverRate;
   final assets = assetsAsync.value ?? [];
   final rates = ratesAsync.value ?? [];
 
@@ -88,4 +89,3 @@ final calculatorProvider = Provider<AsyncValue<CalculationResult>>((ref) {
 
   return AsyncValue.data(result);
 });
-

@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
+import '../../../../core/constants/currency_constants.dart';
 import '../../domain/asset_model.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
@@ -49,19 +50,7 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
     final ratesAsync = ref.watch(exchangeRatesProvider);
     final rates = ratesAsync.value ?? [];
 
-    double usdPrice = 46.0;
-    double eurPrice = 53.0;
-    for (var r in rates) {
-      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
-      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
-    }
-
-    double conversionRate = 1.0;
-    if (appState.currency == AppCurrency.usd) {
-      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
-    } else if (appState.currency == AppCurrency.eur) {
-      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
-    }
+    final conversionRate = CurrencyConstants.getConversionRate(appState.currency, rates);
 
     if (widget.existingAsset != null && !_isInitialized && rates.isNotEmpty) {
       final storedUnitPrice = double.tryParse(widget.existingAsset!.details?['unitPrice'] ?? '') ?? 0.0;

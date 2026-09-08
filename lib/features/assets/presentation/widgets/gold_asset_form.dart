@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
+import '../../../../core/constants/currency_constants.dart';
 import '../../domain/asset_model.dart';
 import '../../../calculator/presentation/calculator_provider.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
@@ -47,23 +48,11 @@ class _GoldAssetFormState extends ConsumerState<GoldAssetForm> {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
     final goldRateAsync = ref.watch(goldRateProvider);
-    final goldPrice = goldRateAsync.value ?? 3650.0;
+    final goldPrice = goldRateAsync.value ?? CurrencyConstants.defaultGoldRate;
     final ratesAsync = ref.watch(exchangeRatesProvider);
     final rates = ratesAsync.value ?? [];
 
-    double usdPrice = 46.0;
-    double eurPrice = 53.0;
-    for (var r in rates) {
-      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
-      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
-    }
-
-    double conversionRate = 1.0;
-    if (appState.currency == AppCurrency.usd) {
-      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
-    } else if (appState.currency == AppCurrency.eur) {
-      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
-    }
+    final conversionRate = CurrencyConstants.getConversionRate(appState.currency, rates);
 
     final goldTypes = isTr
         ? ['Gram', 'Çeyrek', 'Yarım', 'Tam', 'Cumhuriyet', 'Ata']

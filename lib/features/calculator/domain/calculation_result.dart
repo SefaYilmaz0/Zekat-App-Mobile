@@ -6,6 +6,7 @@ class CalculationResult {
   final bool isNisabReached;
   final double zakatToPay;
   final double goldRate;
+  final double silverRate;
   final double conversionRate;
 
   CalculationResult({
@@ -16,6 +17,7 @@ class CalculationResult {
     required this.isNisabReached,
     required this.zakatToPay,
     required this.goldRate,
+    required this.silverRate,
     required this.conversionRate,
   });
 
@@ -28,8 +30,8 @@ class CalculationResult {
       isNisabReached: false,
       zakatToPay: 0,
       goldRate: 0,
+      silverRate: 0,
       conversionRate: 1.0,
     );
   }
 }
-

@@ -102,15 +102,15 @@ class HistoryScreen extends ConsumerWidget {
                                 backgroundColor: Theme.of(context).colorScheme.surface,
                                 title: Text(isTr ? 'Ödeme Onayı' : 'Payment Confirmation', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
                                 content: Text(isTr
-                                    ? 'Zekat ödemenizi kaydetmek ve tüm varlıkları sıfırlamak istiyor musunuz?'
-                                    : 'Do you want to record your zakat payment and reset all assets?', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+                                    ? 'Mevcut döneme ait zekat ödemenizi geçmişe kaydetmek istiyor musunuz? (Varlık portföyünüz korunacaktır.)'
+                                    : 'Do you want to record your zakat payment to history? (Your asset portfolio will be preserved.)', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
                                 actions: [
                                   TextButton(onPressed: () => Navigator.pop(ctx, false),
                                       child: Text(isTr ? 'İptal' : 'Cancel', style: const TextStyle(color: Colors.grey))),
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
                                     onPressed: () => Navigator.pop(ctx, true),
-                                    child: Text(isTr ? 'Evet, Öde' : 'Yes, Pay'),
+                                    child: Text(isTr ? 'Evet, Kaydet' : 'Yes, Save'),
                                   ),
                                 ],
                               ),
@@ -140,7 +140,7 @@ class HistoryScreen extends ConsumerWidget {
 
                             final historyBox = Hive.box<HistoryModel>('history');
                             await historyBox.add(historyItem);
-                            await assetsBox.clear();
+                            // Varlık portföyü korunur (assetsBox.clear ÇAĞRILMAZ)
 
                             ref.invalidate(calculatorProvider);
 

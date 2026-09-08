@@ -14,6 +14,7 @@ import '../../exchange_rates/data/exchange_rate_repository.dart';
 import '../../exchange_rates/presentation/exchange_rate_provider.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
+import '../../../core/constants/currency_constants.dart';
 import '../../../core/theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -356,19 +357,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildRateRow(String code, String name, IconData icon, Language lang, AppState appState) {
-    double usdPrice = 1.0;
-    double eurPrice = 1.0;
-    for (var r in _rates) {
-      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
-      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
-    }
-
-    double conversionRate = 1.0;
-    if (appState.currency == AppCurrency.usd) {
-      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
-    } else if (appState.currency == AppCurrency.eur) {
-      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
-    }
+    final conversionRate = CurrencyConstants.getConversionRate(appState.currency, _rates);
 
     final rate = _rates.firstWhere((r) => r.currencyCode == code, orElse: () => ExchangeRateModel(currencyCode: code, currencyName: name, buyingPrice: 0, sellingPrice: 0, lastUpdate: DateTime.now()));
     

@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
+import '../../../../core/constants/currency_constants.dart';
 import '../../domain/asset_model.dart';
 import '../../../calculator/presentation/calculator_provider.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
@@ -47,23 +48,11 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
     final appState = ref.watch(appStateProvider);
     final isTr = appState.language == Language.tr;
     final silverRateAsync = ref.watch(silverRateProvider);
-    final silverPrice = silverRateAsync.value ?? 38.0;
+    final silverPrice = silverRateAsync.value ?? CurrencyConstants.defaultSilverRate;
     final ratesAsync = ref.watch(exchangeRatesProvider);
     final rates = ratesAsync.value ?? [];
 
-    double usdPrice = 46.0;
-    double eurPrice = 53.0;
-    for (var r in rates) {
-      if (r.currencyCode == 'USD') usdPrice = r.buyingPrice;
-      if (r.currencyCode == 'EUR') eurPrice = r.buyingPrice;
-    }
-
-    double conversionRate = 1.0;
-    if (appState.currency == AppCurrency.usd) {
-      conversionRate = usdPrice > 0 ? usdPrice : 46.0;
-    } else if (appState.currency == AppCurrency.eur) {
-      conversionRate = eurPrice > 0 ? eurPrice : 53.0;
-    }
+    final conversionRate = CurrencyConstants.getConversionRate(appState.currency, rates);
 
     final silverTypes = isTr
         ? ['Gram', 'Takı (Ziynet)', 'Külçe']
@@ -228,7 +217,7 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
                   if (_formKey.currentState!.validate()) {
                     final asset = AssetModel(
                       id: widget.existingAsset?.id ?? const Uuid().v4(),
-                      name: '${_purity}K $_silverType ${isTr ? "Gümüş" : "Silver"}',
+                      name: '$_purity ${isTr ? "Ayar" : "Purity"} $_silverType ${isTr ? "Gümüş" : "Silver"}',
                       category: AssetCategory.silver,
                       value: totalValueTRY,
                       details: {
