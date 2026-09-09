@@ -154,6 +154,26 @@ class SectSelectionScreen extends ConsumerWidget {
                                 ],
                               ),
                             ),
+                            if (sectData['id'] == Sect.hanefi)
+                              Positioned(
+                                top: 8,
+                                left: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).primaryColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    isTr ? 'Yaygın' : 'Common',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             if (isSelected)
                               Positioned(
                                 top: 8,
@@ -176,26 +196,57 @@ class SectSelectionScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade200),
                 ),
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info, color: Theme.of(context).primaryColor),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedSectData['title'] as String,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline_rounded, color: Theme.of(context).primaryColor),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                selectedSectData['title'] as String,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                selectedSectData['desc'] as String,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                  fontSize: 12,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            selectedSectData['desc'] as String,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                              fontSize: 12,
-                              height: 1.5,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.lightbulb_outline_rounded, size: 16, color: Theme.of(context).primaryColor),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              isTr
+                                  ? 'Türkiye\'de ve Diyanet uygulamasında Hanefi mezhebi esastır.'
+                                  : 'Hanafi is the standard followed by Diyanet in Turkey.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context).primaryColor,
+                              ),
                             ),
                           ),
                         ],

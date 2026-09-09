@@ -179,6 +179,57 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
             onChanged: (val) => setState(() {}),
             validator: (val) => val == null || val.isEmpty ? (isTr ? 'Lütfen bir birim değer girin' : 'Please enter a unit value') : null,
           ),
+          const SizedBox(height: 8),
+          // Akıllı Piyasa Fiyatı Ön Tanımları (Smart Presets)
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, size: 14, color: Color(0xFFF3A712)),
+              const SizedBox(width: 4),
+              Text(
+                isTr ? '2026 Piyasa Tahminleri:' : '2026 Market Estimates:',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: () {
+              final isCattle = _livestockType.contains('Sığır') || _livestockType.contains('Cattle');
+              final isCamel = _livestockType.contains('Deve') || _livestockType.contains('Camel');
+              final presetsTRY = isCattle
+                  ? [85000.0, 115000.0, 145000.0]
+                  : isCamel
+                      ? [100000.0, 130000.0, 160000.0]
+                      : [12000.0, 15000.0, 18000.0];
+
+              return presetsTRY.map((presetTRY) {
+                final convertedPreset = presetTRY / conversionRate;
+                final formattedValue = convertedPreset >= 1000
+                    ? '${(convertedPreset / 1000).toStringAsFixed(convertedPreset % 1000 == 0 ? 0 : 1)}k $currencySymbol'
+                    : '${convertedPreset.toStringAsFixed(0)} $currencySymbol';
+
+                return ActionChip(
+                  avatar: const Icon(Icons.touch_app_outlined, size: 13, color: Color(0xFFF3A712)),
+                  label: Text(
+                    formattedValue,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                  backgroundColor: const Color(0xFFF3A712).withValues(alpha: 0.08),
+                  side: BorderSide(color: const Color(0xFFF3A712).withValues(alpha: 0.3)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  onPressed: () {
+                    setState(() {
+                      _livestockUnitPriceController.text = convertedPreset.toStringAsFixed(0);
+                    });
+                  },
+                );
+              }).toList();
+            }(),
+          ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

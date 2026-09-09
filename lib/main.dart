@@ -14,6 +14,7 @@ import 'features/assets/domain/asset_model.dart';
 import 'features/history/domain/history_model.dart';
 import 'features/exchange_rates/domain/exchange_rate_model.dart';
 
+import 'core/services/notification_service.dart';
 import 'features/onboarding/presentation/welcome_screen.dart';
 import 'features/onboarding/presentation/sect_selection_screen.dart';
 
@@ -38,6 +39,8 @@ void main() async {
   await Hive.openBox<HistoryModel>('history');
   await Hive.openBox<ExchangeRateModel>('exchange_rates');
   await Hive.openBox('settings');
+
+  await NotificationService().initialize();
 
   runApp(const ProviderScope(child: ZekatApp()));
 }

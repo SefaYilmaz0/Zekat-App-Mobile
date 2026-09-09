@@ -15,6 +15,7 @@ import '../../exchange_rates/presentation/exchange_rate_provider.dart';
 import '../../exchange_rates/domain/exchange_rate_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
 import '../../../core/constants/currency_constants.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -271,6 +272,65 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onTap: () => _showZakatDateDialog(context, settingsBox, isTr, appState.language, zakatMonth, zakatDay),
                 ),
                 const Divider(height: 1, indent: 56),
+                SwitchListTile(
+                  secondary: const Icon(Icons.notifications_active_outlined, color: Color(0xFFF3A712)),
+                  title: Text(isTr ? 'Zekat Hatırlatıcıları' : 'Zakat Reminders', style: const TextStyle(fontWeight: FontWeight.w500)),
+                  subtitle: Text(
+                    isTr ? 'Yıl dönümüne 30 gün, 7 gün ve gününde bildirim' : 'Notification at 30 days, 7 days and on anniversary',
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                  ),
+                  value: settingsBox.get('notifications_enabled', defaultValue: false) as bool,
+                  activeThumbColor: const Color(0xFFF3A712),
+                  onChanged: (val) async {
+                    if (val) {
+                      final granted = await NotificationService().requestPermissions();
+                      if (!granted && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isTr ? 'Bildirim izni verilmedi.' : 'Notification permission denied.'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+
+                      await settingsBox.put('notifications_enabled', true);
+                      setState(() {});
+
+                      if (hasZakatDate) {
+                        final days = HijriDateHelper.getDaysUntilNextZakat(zakatMonth, zakatDay) ?? 0;
+                        await NotificationService().scheduleZakatReminders(
+                          daysUntilAnniversary: days,
+                          isTr: isTr,
+                        );
+                      }
+
+                      await NotificationService().showTestNotification(isTr: isTr);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isTr ? 'Zekat hatırlatıcıları aktif edildi. Test bildirimi gönderildi.' : 'Zakat reminders enabled. Test notification sent.'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    } else {
+                      await settingsBox.put('notifications_enabled', false);
+                      await NotificationService().cancelAllReminders();
+                      setState(() {});
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isTr ? 'Hatırlatıcı bildirimler kapatıldı.' : 'Reminders disabled.'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+                const Divider(height: 1, indent: 56),
                 ListTile(
                   leading: const Icon(Icons.pin_outlined, color: Color(0xFFF3A712)),
                   title: Text(isTr ? 'Sayı ve Para Formatı' : 'Number & Currency Format', style: const TextStyle(fontWeight: FontWeight.w500)),
@@ -506,11 +566,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   if (currentMonth != null) ...[
                     const SizedBox(height: 16),
                     TextButton.icon(
-                      onPressed: () {
-                        settingsBox.delete('zakat_hijri_month');
-                        settingsBox.delete('zakat_hijri_day');
+                      onPressed: () async {
+                        await settingsBox.delete('zakat_hijri_month');
+                        await settingsBox.delete('zakat_hijri_day');
+                        await NotificationService().cancelAllReminders();
                         setState(() {});
-                        Navigator.pop(context);
+                        if (context.mounted) Navigator.pop(context);
                       },
                       icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
                       label: Text(isTr ? 'Tarihi Temizle' : 'Clear Date', style: const TextStyle(color: Colors.red)),
@@ -529,11 +590,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  onPressed: () {
-                    settingsBox.put('zakat_hijri_month', selectedMonth);
-                    settingsBox.put('zakat_hijri_day', selectedDay);
+                  onPressed: () async {
+                    await settingsBox.put('zakat_hijri_month', selectedMonth);
+                    await settingsBox.put('zakat_hijri_day', selectedDay);
+                    final notifEnabled = settingsBox.get('notifications_enabled', defaultValue: false) as bool;
+                    if (notifEnabled) {
+                      final days = HijriDateHelper.getDaysUntilNextZakat(selectedMonth, selectedDay) ?? 0;
+                      await NotificationService().scheduleZakatReminders(
+                        daysUntilAnniversary: days,
+                        isTr: isTr,
+                      );
+                    }
                     setState(() {});
-                    Navigator.pop(context);
+                    if (context.mounted) Navigator.pop(context);
                   },
                   child: Text(isTr ? 'Kaydet' : 'Save'),
                 ),
