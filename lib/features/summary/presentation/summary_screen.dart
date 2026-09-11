@@ -14,6 +14,8 @@ import 'widgets/pdf_preview_screen.dart';
 import '../../../core/theme.dart';
 import '../../../core/constants/currency_constants.dart';
 import '../../exchange_rates/presentation/exchange_rate_provider.dart';
+import '../../../core/presentation/widgets/app_card.dart';
+import '../../../core/presentation/widgets/app_asset_tile.dart';
 
 class GridPatternPainter extends CustomPainter {
   @override
@@ -41,18 +43,6 @@ class SummaryScreen extends ConsumerStatefulWidget {
 }
 
 class _SummaryScreenState extends ConsumerState<SummaryScreen> {
-  IconData _getIconForCategory(AssetCategory category) {
-    switch (category) {
-      case AssetCategory.gold: return Icons.grid_goldenratio_rounded;
-      case AssetCategory.silver: return Icons.diamond_outlined;
-      case AssetCategory.cash: return Icons.payments_rounded;
-      case AssetCategory.agriculture: return Icons.agriculture_rounded;
-      case AssetCategory.livestock: return Icons.pets_rounded;
-      case AssetCategory.receivable: return Icons.account_balance_rounded;
-      case AssetCategory.debt: return Icons.money_off_rounded;
-    }
-  }
-
   void _deleteAsset(BuildContext context, AssetModel asset, bool isTr) {
     final box = Hive.box<AssetModel>('assets');
     box.delete(asset.id);
@@ -173,9 +163,12 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                                 style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                               ),
                               const SizedBox(height: 8),
-                              Text(
-                                '${appState.currency.symbol}${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}',
-                                style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '${appState.currency.symbol}${calc.isNisabReached ? formatCurrency(calc.zakatToPay, appState.language) : formatCurrency(0.0, appState.language)}',
+                                  style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -286,8 +279,18 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                           Text(isTr ? 'Mevcut Net Varlık' : 'Net Worth', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                            Text('${appState.currency.symbol}${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                          Text(isTr ? 'Mevcut Net Varlık' : 'Net Worth', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                '${appState.currency.symbol}${formatCurrency(calc.netZakatableAmount, appState.language, decimalDigits: 0)}',
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -303,12 +306,21 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('0', style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                               Text(isTr ? 'Nisab Sınırı' : 'Nisab Limit', style: const TextStyle(color: Color(0xFFF3A712), fontSize: 12)),
-                               Text('${appState.currency.symbol}${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
-                            ],
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(isTr ? 'Nisab Sınırı' : 'Nisab Limit', style: const TextStyle(color: Color(0xFFF3A712), fontSize: 12)),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    '${appState.currency.symbol}${formatCurrency(calc.nisabThreshold, appState.language, decimalDigits: 0)}',
+                                    style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
                           )
                         ],
                       ),
@@ -324,7 +336,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     Text(isTr ? 'Varlıklarım' : 'My Assets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.displayLarge?.color)),
                     TextButton.icon(
                       onPressed: () {
-                        showDialog(context: context, builder: (context) => const AddAssetDialog());
+                        AddAssetDialog.show(context);
                       },
                       style: TextButton.styleFrom(
                         backgroundColor: const Color(0xFFF3A712).withValues(alpha: 0.1),
@@ -339,13 +351,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                 const SizedBox(height: 16),
 
                 // Assets List Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
+                AppCard(
                   child: myAssets.isEmpty
                     ? Padding(
                         padding: const EdgeInsets.symmetric(vertical: 40),
@@ -354,15 +360,18 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                             children: [
                               Container(
                                 width: 64, height: 64,
-                                decoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
+                                decoration: BoxDecoration(
+                                  color: appState.isDark ? Colors.white10 : Colors.grey.shade100,
+                                  shape: BoxShape.circle,
+                                ),
                                 child: Icon(Icons.post_add_rounded, color: Colors.grey.shade400, size: 32),
                               ),
                               const SizedBox(height: 16),
                               Text(isTr ? 'Henüz varlık eklenmedi.' : 'No assets added yet.', style: TextStyle(color: Colors.grey.shade500)),
                               const SizedBox(height: 8),
                               TextButton(
-                                onPressed: () => showDialog(context: context, builder: (context) => const AddAssetDialog()),
-                                child: Text(isTr ? 'Varlık Ekle' : 'Add Asset', style: const TextStyle(color: Color(0xFFF3A712), fontWeight: FontWeight.bold)),
+                                onPressed: () => AddAssetDialog.show(context),
+                                child: Text(isTr ? 'Varlık Ekle' : 'Add Asset', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
                               )
                             ],
                           ),
@@ -372,72 +381,28 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: myAssets.length,
-                        separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
+                        separatorBuilder: (context, index) => Divider(
+                          height: 1,
+                          color: appState.isDark ? AppColors.borderDark : AppColors.borderLight,
+                        ),
                         itemBuilder: (context, index) {
                           final asset = myAssets[index];
-                          return ListTile(
-                            leading: Container(
-                              width: 40, height: 40,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF3A712).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(_getIconForCategory(asset.category), color: const Color(0xFFF3A712), size: 20),
-                            ),
-                            title: Text(asset.name, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                            subtitle: Row(
-                              children: [
-                                Text(asset.category.name.toUpperCase(), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
-                                if (asset.category == AssetCategory.gold &&
-                                    asset.details?['isJewelry'] == true &&
-                                    appState.sect != Sect.hanefi) ...[
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: appState.isDark ? Colors.white12 : Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      isTr ? 'MUAF' : 'EXEMPT',
-                                      style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: appState.isDark ? Colors.white60 : Colors.grey.shade700),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Builder(
-                                  builder: (context) {
-                                    final dynamicValue = CurrencyConstants.calculateDynamicAssetValueTRY(
-                                      asset: asset,
-                                      goldRate: calc.goldRate * calc.conversionRate,
-                                      silverRate: calc.silverRate * calc.conversionRate,
-                                      exchangeRates: rates,
-                                    ) / calc.conversionRate;
-                                    return Text(
-                                      '${appState.currency.symbol}${formatCurrency(dynamicValue, appState.language)}',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color),
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.edit_outlined, color: Colors.grey.shade400, size: 20),
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => AddAssetDialog(existingAsset: asset),
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
-                                  onPressed: () => _deleteAsset(context, asset, isTr),
-                                ),
-                              ],
-                            ),
+                          final dynamicValue = CurrencyConstants.calculateDynamicAssetValueTRY(
+                            asset: asset,
+                            goldRate: calc.goldRate * calc.conversionRate,
+                            silverRate: calc.silverRate * calc.conversionRate,
+                            exchangeRates: rates,
+                          ) / calc.conversionRate;
+
+                          return AppAssetTile(
+                            asset: asset,
+                            dynamicValue: dynamicValue,
+                            isDebt: false,
+                            language: appState.language,
+                            currencySymbol: appState.currency.symbol,
+                            sect: appState.sect,
+                            onEdit: () => AddAssetDialog.show(context, existingAsset: asset),
+                            onDelete: () => _deleteAsset(context, asset, isTr),
                           );
                         },
                       ),
@@ -445,40 +410,44 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                 const SizedBox(height: 24),
 
                 // Debts Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
+                AppCard(
                   child: Column(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: appState.isDark ? const Color(0xFF3F1C1C) : const Color(0xFFFEF2F2),
+                          color: appState.isDark ? AppColors.debtRedBgDark : AppColors.debtRedBgLight,
                           borderRadius: myDebts.isEmpty 
-                            ? BorderRadius.circular(16)
-                            : const BorderRadius.vertical(top: Radius.circular(16)),
+                            ? BorderRadius.circular(18)
+                            : const BorderRadius.vertical(top: Radius.circular(18)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.money_off_rounded, color: Colors.red, size: 20),
+                                const Icon(Icons.money_off_rounded, color: AppColors.debtRed, size: 20),
                                 const SizedBox(width: 8),
                                 Text(isTr ? 'Toplam Borçlar' : 'Total Debts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).textTheme.bodyLarge?.color)),
                               ],
                             ),
-                             Text('- ${appState.currency.symbol}${formatCurrency(calc.totalDebts, appState.language)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  '- ${appState.currency.symbol}${formatCurrency(calc.totalDebts, appState.language)}',
+                                  style: const TextStyle(color: AppColors.debtRed, fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       if (myDebts.isEmpty)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.only(top: 20, bottom: 24),
                           child: Text(isTr ? 'Borç kaydı bulunmuyor.' : 'No debts found.', style: TextStyle(color: Colors.grey.shade400)),
                         )
                       else
@@ -486,60 +455,28 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: myDebts.length,
-                          separatorBuilder: (context, index) => Divider(height: 1, color: Colors.red.shade50),
+                          separatorBuilder: (context, index) => Divider(
+                            height: 1,
+                            color: appState.isDark ? AppColors.borderDark : Colors.red.shade50,
+                          ),
                           itemBuilder: (context, index) {
                             final asset = myDebts[index];
-                            return ListTile(
-                              leading: Container(
-                                width: 40, height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(_getIconForCategory(asset.category), color: Colors.red, size: 20),
-                              ),
-                              title: Text(asset.name, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                              subtitle: asset.details?['isShortTerm'] == false
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(top: 2),
-                                      child: Text(
-                                        isTr ? 'Uzun Vadeli (Düşülmez)' : 'Long-Term (Not Deducted)',
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange.shade700),
-                                      ),
-                                    )
-                                  : null,
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Builder(
-                                    builder: (context) {
-                                      final dynamicValue = CurrencyConstants.calculateDynamicAssetValueTRY(
-                                        asset: asset,
-                                        goldRate: calc.goldRate * calc.conversionRate,
-                                        silverRate: calc.silverRate * calc.conversionRate,
-                                        exchangeRates: rates,
-                                      ) / calc.conversionRate;
-                                      return Text(
-                                        '- ${appState.currency.symbol}${formatCurrency(dynamicValue, appState.language)}',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
-                                      );
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.edit_outlined, color: Colors.grey.shade400, size: 20),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AddAssetDialog(existingAsset: asset),
-                                      );
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete_outline_rounded, color: Colors.grey.shade400, size: 20),
-                                    onPressed: () => _deleteAsset(context, asset, isTr),
-                                  ),
-                                ],
-                              ),
+                            final dynamicValue = CurrencyConstants.calculateDynamicAssetValueTRY(
+                              asset: asset,
+                              goldRate: calc.goldRate * calc.conversionRate,
+                              silverRate: calc.silverRate * calc.conversionRate,
+                              exchangeRates: rates,
+                            ) / calc.conversionRate;
+
+                            return AppAssetTile(
+                              asset: asset,
+                              dynamicValue: dynamicValue,
+                              isDebt: true,
+                              language: appState.language,
+                              currencySymbol: appState.currency.symbol,
+                              sect: appState.sect,
+                              onEdit: () => AddAssetDialog.show(context, existingAsset: asset),
+                              onDelete: () => _deleteAsset(context, asset, isTr),
                             );
                           },
                         ),

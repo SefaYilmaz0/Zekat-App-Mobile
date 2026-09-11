@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
 import '../../../../core/constants/currency_constants.dart';
+import '../../../../core/theme.dart';
+import '../../../../core/presentation/widgets/app_form_controls.dart';
 import '../../domain/asset_model.dart';
 import '../../../calculator/presentation/calculator_provider.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
@@ -96,18 +98,20 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(isTr ? 'GÜMÜŞ TÜRÜ' : 'SILVER TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+          Text(isTr ? 'GÜMÜŞ TÜRÜ' : 'SILVER TYPE', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            runSpacing: 4,
+            runSpacing: 6,
             children: silverTypes.map((type) {
               final isSelected = _silverType == type;
               return ChoiceChip(
-                label: Text(type, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : (appState.isDark ? Colors.white70 : Colors.black87))),
+                label: Text(type, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isSelected ? Colors.white : (appState.isDark ? Colors.white70 : Colors.black87))),
                 selected: isSelected,
-                selectedColor: const Color(0xFFF3A712),
-                backgroundColor: appState.isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                selectedColor: AppColors.primary,
+                backgroundColor: appState.isDark ? Colors.white10 : Colors.grey.shade100,
+                side: BorderSide(color: isSelected ? AppColors.primary : (appState.isDark ? AppColors.borderDark : AppColors.borderLight)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 onSelected: (val) {
                   if (val) {
                     setState(() {
@@ -119,34 +123,24 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
             }).toList(),
           ),
           const SizedBox(height: 16),
-          Text(isTr ? 'AYAR (MİLYEM)' : 'PURITY (MILLIEME)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+          Text(isTr ? 'AYAR (MİLYEM)' : 'PURITY (MILLIEME)', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted)),
           const SizedBox(height: 8),
-          Row(
-            children: ['999', '925', '900', '800'].map((k) {
-              final isSelected = _purity == k;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: isSelected ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
-                      side: BorderSide(color: isSelected ? const Color(0xFFF3A712) : Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onPressed: () => setState(() => _purity = k),
-                    child: Text(k, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
-                  ),
-                ),
-              );
-            }).toList(),
+          AppPillGroup<String>(
+            selectedValue: _purity,
+            options: const [
+              AppPillOption(value: '999', label: '999 Milyem', subtitle: 'Has Gümüş'),
+              AppPillOption(value: '925', label: '925 Ayar', subtitle: 'Standart Takı'),
+              AppPillOption(value: '900', label: '900 Ayar'),
+              AppPillOption(value: '800', label: '800 Ayar'),
+            ],
+            onSelected: (val) => setState(() => _purity = val),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _silverQuantityController,
-            decoration: InputDecoration(
+            decoration: AppFormControls.inputDecoration(
+              context: context,
               labelText: isTr ? 'Miktar (Gram)' : 'Quantity (Grams)',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               suffixText: 'gr',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -155,7 +149,7 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
           ),
           const SizedBox(height: 16),
           SwitchListTile(
-            title: Text(isTr ? 'Kişisel Takı (Ziynet)' : 'Personal Jewelry'),
+            title: Text(isTr ? 'Kişisel Takı (Ziynet)' : 'Personal Jewelry', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             subtitle: Text(
               appState.sect == Sect.hanefi
                   ? (isTr
@@ -164,7 +158,7 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
                   : (isTr
                       ? 'Seçili mezhebe göre kişisel takılar zekattan muaftır.'
                       : 'According to the selected sect, personal jewelry is exempt from Zakat.'),
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
             ),
             value: _isJewelry,
             onChanged: (val) {
@@ -172,36 +166,14 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
                 _isJewelry = val;
               });
             },
-            activeThumbColor: const Color(0xFFF3A712),
+            activeThumbColor: AppColors.primary,
             contentPadding: EdgeInsets.zero,
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: appState.isDark ? Colors.grey.shade900 : Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade200),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(isTr ? 'Birim Fiyat:' : 'Unit Price:', style: const TextStyle(fontSize: 12)),
-                    Text('${appState.currency.symbol}${unitPriceConverted.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  ],
-                ),
-                const Divider(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(isTr ? 'Toplam Değer:' : 'Total Value:', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text('${appState.currency.symbol}${totalValueConverted.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712))),
-                  ],
-                ),
-              ],
-            ),
+          AppLiveValuationCard(
+            label: isTr ? 'Toplam Değer' : 'Total Value',
+            value: '${appState.currency.symbol}${totalValueConverted.toStringAsFixed(2)}',
+            secondaryText: '${isTr ? "Birim Fiyat" : "Unit Price"}: ${appState.currency.symbol}${unitPriceConverted.toStringAsFixed(2)}',
           ),
           const SizedBox(height: 24),
           Row(
@@ -209,9 +181,9 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(isTr ? 'İptal' : 'Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                child: Text(isTr ? 'İptal' : 'Cancel', style: const TextStyle(color: AppColors.textMuted)),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -234,7 +206,7 @@ class _SilverAssetFormState extends ConsumerState<SilverAssetForm> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF3A712),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

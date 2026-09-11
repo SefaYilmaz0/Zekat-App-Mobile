@@ -163,7 +163,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
           elevation: 8,
           shape: const CircleBorder(),
           onPressed: () {
-            showDialog(context: context, builder: (context) => const AddAssetDialog());
+            AddAssetDialog.show(context);
           },
           child: const Icon(Icons.add_rounded, size: 36),
         ),

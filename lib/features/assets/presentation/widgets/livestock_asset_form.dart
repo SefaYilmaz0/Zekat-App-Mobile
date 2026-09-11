@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
 import '../../../../core/constants/currency_constants.dart';
+import '../../../../core/theme.dart';
+import '../../../../core/presentation/widgets/app_form_controls.dart';
 import '../../domain/asset_model.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
@@ -86,81 +88,38 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(isTr ? 'HAYVAN TÜRÜ' : 'LIVESTOCK TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+          Text(isTr ? 'HAYVAN TÜRÜ' : 'LIVESTOCK TYPE', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted)),
           const SizedBox(height: 8),
-          Row(
-            children: animalTypes.map((type) {
-              final isSelected = _livestockType == type;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: isSelected ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
-                      side: BorderSide(color: isSelected ? const Color(0xFFF3A712) : Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onPressed: () => setState(() => _livestockType = type),
-                    child: Text(type, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: isSelected ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
-                  ),
-                ),
-              );
-            }).toList(),
+          AppPillGroup<String>(
+            selectedValue: _livestockType,
+            options: animalTypes.map((type) => AppPillOption(value: type, label: type)).toList(),
+            onSelected: (val) => setState(() => _livestockType = val),
           ),
           const SizedBox(height: 16),
-          Text(isTr ? 'YETİŞTİRME AMACI' : 'PURPOSE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+          Text(isTr ? 'YETİŞTİRME AMACI' : 'PURPOSE', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted)),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: !_isTrade ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
-                      side: BorderSide(color: !_isTrade ? const Color(0xFFF3A712) : Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    onPressed: () => setState(() => _isTrade = false),
-                    child: Column(
-                      children: [
-                        Text(isTr ? 'Saime' : 'Grazing', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: !_isTrade ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
-                        Text(isTr ? 'Süt/Üreme' : 'Milk/Breeding', style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
-                      ],
-                    ),
-                  ),
-                ),
+          AppPillGroup<bool>(
+            selectedValue: _isTrade,
+            options: [
+              AppPillOption(
+                value: false,
+                label: isTr ? 'Saime' : 'Grazing',
+                subtitle: isTr ? 'Süt/Üreme' : 'Milk/Breeding',
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: _isTrade ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
-                      side: BorderSide(color: _isTrade ? const Color(0xFFF3A712) : Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    onPressed: () => setState(() => _isTrade = true),
-                    child: Column(
-                      children: [
-                        Text(isTr ? 'Ticaret' : 'Trade', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: _isTrade ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
-                        Text(isTr ? 'Alım-Satım' : 'Buying-Selling', style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
-                      ],
-                    ),
-                  ),
-                ),
+              AppPillOption(
+                value: true,
+                label: isTr ? 'Ticaret' : 'Trade',
+                subtitle: isTr ? 'Alım-Satım' : 'Buying-Selling',
               ),
             ],
+            onSelected: (val) => setState(() => _isTrade = val),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _livestockQuantityController,
-            decoration: InputDecoration(
+            decoration: AppFormControls.inputDecoration(
+              context: context,
               labelText: isTr ? 'Adet' : 'Quantity',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               suffixText: isTr ? 'adet' : 'pcs',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -170,9 +129,9 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _livestockUnitPriceController,
-            decoration: InputDecoration(
+            decoration: AppFormControls.inputDecoration(
+              context: context,
               labelText: isTr ? 'Birim Değer ($currencySymbol)' : 'Unit Value ($currencySymbol)',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               suffixText: currencySymbol,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -183,7 +142,7 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
           // Akıllı Piyasa Fiyatı Ön Tanımları (Smart Presets)
           Row(
             children: [
-              const Icon(Icons.auto_awesome_rounded, size: 14, color: Color(0xFFF3A712)),
+              const Icon(Icons.auto_awesome_rounded, size: 14, color: AppColors.primary),
               const SizedBox(width: 4),
               Text(
                 isTr ? '2026 Piyasa Tahminleri:' : '2026 Market Estimates:',
@@ -211,13 +170,13 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
                     : '${convertedPreset.toStringAsFixed(0)} $currencySymbol';
 
                 return ActionChip(
-                  avatar: const Icon(Icons.touch_app_outlined, size: 13, color: Color(0xFFF3A712)),
+                  avatar: const Icon(Icons.touch_app_outlined, size: 13, color: AppColors.primary),
                   label: Text(
                     formattedValue,
                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                   ),
-                  backgroundColor: const Color(0xFFF3A712).withValues(alpha: 0.08),
-                  side: BorderSide(color: const Color(0xFFF3A712).withValues(alpha: 0.3)),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                  side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -231,12 +190,9 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
             }(),
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(isTr ? 'Tahmini Toplam:' : 'Estimated Total:', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('$currencySymbol${totalValueConverted.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFFF3A712))),
-            ],
+          AppLiveValuationCard(
+            label: isTr ? 'Tahmini Toplam' : 'Estimated Total',
+            value: '$currencySymbol${totalValueConverted.toStringAsFixed(2)}',
           ),
           const SizedBox(height: 24),
           Row(
@@ -244,9 +200,9 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(isTr ? 'İptal' : 'Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                child: Text(isTr ? 'İptal' : 'Cancel', style: const TextStyle(color: AppColors.textMuted)),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -268,7 +224,7 @@ class _LivestockAssetFormState extends ConsumerState<LivestockAssetForm> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF3A712),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

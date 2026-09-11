@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/domain/enums.dart';
 import '../../../../core/providers/app_state_provider.dart';
 import '../../../../core/constants/currency_constants.dart';
+import '../../../../core/theme.dart';
+import '../../../../core/presentation/widgets/app_form_controls.dart';
 import '../../domain/asset_model.dart';
 import '../../../exchange_rates/presentation/exchange_rate_provider.dart';
 
@@ -85,65 +87,37 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _agricultureNameController,
-            decoration: InputDecoration(
+            decoration: AppFormControls.inputDecoration(
+              context: context,
               labelText: isTr ? 'Ürün Tanımı (Örn: Buğday, Arpa)' : 'Product Name (e.g. Wheat)',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
             validator: (val) => val == null || val.isEmpty ? (isTr ? 'Lütfen bir ürün adı girin' : 'Please enter a product name') : null,
           ),
           const SizedBox(height: 16),
-          Text(isTr ? 'SULAMA YÖNTEMİ' : 'IRRIGATION TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+          Text(isTr ? 'SULAMA YÖNTEMİ' : 'IRRIGATION TYPE', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted)),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: _irrigationType == 'natural' ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
-                      side: BorderSide(color: _irrigationType == 'natural' ? const Color(0xFFF3A712) : Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    onPressed: () => setState(() => _irrigationType = 'natural'),
-                    child: Column(
-                      children: [
-                        Text(isTr ? 'Doğal' : 'Natural', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: _irrigationType == 'natural' ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
-                        Text(isTr ? 'Masrafsız' : 'Cost-free', style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
-                      ],
-                    ),
-                  ),
-                ),
+          AppPillGroup<String>(
+            selectedValue: _irrigationType,
+            options: [
+              AppPillOption(
+                value: 'natural',
+                label: isTr ? 'Doğal (Yağmur/Nehir)' : 'Natural (Rain/River)',
+                subtitle: isTr ? 'Masrafsız (%10 Öşür)' : 'Cost-free (10% Ushr)',
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: _irrigationType == 'artificial' ? const Color(0xFFF3A712).withValues(alpha: 0.1) : Colors.transparent,
-                      side: BorderSide(color: _irrigationType == 'artificial' ? const Color(0xFFF3A712) : Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    onPressed: () => setState(() => _irrigationType = 'artificial'),
-                    child: Column(
-                      children: [
-                        Text(isTr ? 'Yapay' : 'Artificial', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: _irrigationType == 'artificial' ? const Color(0xFFF3A712) : (appState.isDark ? Colors.white70 : Colors.black54))),
-                        Text(isTr ? 'Masraflı' : 'Costly', style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
-                      ],
-                    ),
-                  ),
-                ),
+              AppPillOption(
+                value: 'artificial',
+                label: isTr ? 'Yapay (Motor/Kuyu)' : 'Artificial (Irrigated)',
+                subtitle: isTr ? 'Masraflı (%5 Öşür)' : 'Costly (5% Ushr)',
               ),
             ],
+            onSelected: (val) => setState(() => _irrigationType = val),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _agricultureValueController,
-            decoration: InputDecoration(
+            decoration: AppFormControls.inputDecoration(
+              context: context,
               labelText: isTr ? 'Toplam Değer ($currencySymbol)' : 'Total Value ($currencySymbol)',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               suffixText: currencySymbol,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -151,20 +125,9 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
             validator: (val) => val == null || val.isEmpty ? (isTr ? 'Lütfen değeri girin' : 'Please enter value') : null,
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: appState.isDark ? Colors.grey.shade900 : Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: appState.isDark ? Colors.white10 : Colors.grey.shade200),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(isTr ? 'Zekat Oranı:' : 'Zakat Rate:', style: const TextStyle(fontWeight: FontWeight.w500)),
-                Text(ratePercent, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFF3A712))),
-              ],
-            ),
+          AppLiveValuationCard(
+            label: isTr ? 'Zekat Oranı' : 'Zakat Rate',
+            value: ratePercent,
           ),
           const SizedBox(height: 24),
           Row(
@@ -172,9 +135,9 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(isTr ? 'İptal' : 'Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                child: Text(isTr ? 'İptal' : 'Cancel', style: const TextStyle(color: AppColors.textMuted)),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -193,7 +156,7 @@ class _AgricultureAssetFormState extends ConsumerState<AgricultureAssetForm> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF3A712),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
