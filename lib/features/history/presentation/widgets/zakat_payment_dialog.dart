@@ -608,6 +608,8 @@ class _ZakatPaymentDialogState extends ConsumerState<ZakatPaymentDialog> {
                   ),
                 ],
               ),
+              // hive_generator's analyzer can't parse `?extraWidget` (Dart 3.8+).
+              // ignore: use_null_aware_elements
               if (extraWidget != null) extraWidget,
             ],
           ),
