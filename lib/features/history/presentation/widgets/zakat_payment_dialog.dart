@@ -608,7 +608,7 @@ class _ZakatPaymentDialogState extends ConsumerState<ZakatPaymentDialog> {
                   ),
                 ],
               ),
-              ?extraWidget,
+              if (extraWidget != null) extraWidget,
             ],
           ),
         ),
