@@ -38,6 +38,21 @@ class HistoryModel extends HiveObject {
   @HiveField(10)
   String? hijriDate;
 
+  @HiveField(11)
+  double? totalAssets;
+
+  @HiveField(12)
+  double? totalDebts;
+
+  @HiveField(13)
+  double? netZakatableAmount;
+
+  @HiveField(14)
+  double? nisabThreshold;
+
+  @HiveField(15)
+  String? paymentMethod;
+
   HistoryModel({
     required this.id,
     required this.period,
@@ -50,6 +65,11 @@ class HistoryModel extends HiveObject {
     required this.assets,
     required this.liabilities,
     this.hijriDate,
+    this.totalAssets,
+    this.totalDebts,
+    this.netZakatableAmount,
+    this.nisabThreshold,
+    this.paymentMethod,
   });
 }
 

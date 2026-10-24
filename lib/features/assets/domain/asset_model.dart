@@ -52,5 +52,17 @@ class AssetModel extends HiveObject {
     this.description,
     this.details,
   });
+
+  AssetModel clone() {
+    return AssetModel(
+      id: id,
+      name: name,
+      category: category,
+      value: value,
+      previousValue: previousValue,
+      description: description,
+      details: details != null ? Map<dynamic, dynamic>.from(details!) : null,
+    );
+  }
 }
 

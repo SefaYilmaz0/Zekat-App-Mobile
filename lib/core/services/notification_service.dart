@@ -14,6 +14,7 @@ class NotificationService {
   bool _isInitialized = false;
 
   Future<void> initialize() async {
+    if (kIsWeb) return;
     if (_isInitialized) return;
 
     try {
@@ -45,6 +46,7 @@ class NotificationService {
   }
 
   Future<bool> requestPermissions() async {
+    if (kIsWeb) return false;
     try {
       final androidPlugin = _notificationsPlugin
           .resolvePlatformSpecificImplementation<

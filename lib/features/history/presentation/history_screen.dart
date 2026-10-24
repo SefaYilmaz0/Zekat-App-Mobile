@@ -5,11 +5,13 @@ import '../../../core/domain/enums.dart';
 import '../../../core/providers/app_state_provider.dart';
 import '../domain/history_model.dart';
 import '../../calculator/presentation/calculator_provider.dart';
-import '../../assets/domain/asset_model.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/hijri_date_helper.dart';
 import '../../../core/theme.dart';
 import 'package:intl/intl.dart';
+import '../../exchange_rates/presentation/exchange_rate_provider.dart';
+import 'history_detail_screen.dart';
+import 'widgets/zakat_payment_dialog.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -93,58 +95,19 @@ class HistoryScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: currentZakat <= 0.0
+                    onPressed: (currentZakat <= 0.0 || calcAsync.value == null)
                         ? null
                         : () async {
-                            final confirm = await showDialog<bool>(
+                            final rates = ref.read(exchangeRatesProvider).value ?? [];
+                            final success = await ZakatPaymentDialog.show(
                               context: context,
-                              builder: (ctx) => AlertDialog(
-                                backgroundColor: Theme.of(context).colorScheme.surface,
-                                title: Text(isTr ? 'Ödeme Onayı' : 'Payment Confirmation', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
-                                content: Text(isTr
-                                    ? 'Mevcut döneme ait zekat ödemenizi geçmişe kaydetmek istiyor musunuz? (Varlık portföyünüz korunacaktır.)'
-                                    : 'Do you want to record your zakat payment to history? (Your asset portfolio will be preserved.)', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
-                                actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx, false),
-                                      child: Text(isTr ? 'İptal' : 'Cancel', style: const TextStyle(color: Colors.grey))),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
-                                    onPressed: () => Navigator.pop(ctx, true),
-                                    child: Text(isTr ? 'Evet, Kaydet' : 'Yes, Save'),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (confirm != true) return;
-
-                            final today = DateTime.now();
-                            final periodName = isTr ? 'Zekat Ödemesi' : 'Zakat Payment';
-                            final gregorian = DateFormat('MMMM yyyy', isTr ? 'tr_TR' : 'en_US').format(today);
-
-                            final assetsBox = Hive.box<AssetModel>('assets');
-                            final currentAssets = assetsBox.values.toList();
-
-                            final historyItem = HistoryModel(
-                              id: DateTime.now().millisecondsSinceEpoch,
-                              period: periodName,
-                              gregorian: gregorian,
-                              amount: currentZakat,
-                              currency: appState.currency.name.toUpperCase().replaceAll('CURRENCY', ''),
-                              status: 'paid',
-                              assetCount: currentAssets.length,
-                              date: today.toIso8601String(),
-                              assets: currentAssets,
-                              liabilities: [],
-                              hijriDate: HijriDateHelper.formatHijriMonthYear(today, appState.language),
+                              zakatAmount: currentZakat,
+                              calculationResult: calcAsync.value!,
+                              appState: appState,
+                              exchangeRates: rates,
                             );
 
-                            final historyBox = Hive.box<HistoryModel>('history');
-                            await historyBox.add(historyItem);
-                            // Varlık portföyü korunur (assetsBox.clear ÇAĞRILMAZ)
-
-                            ref.invalidate(calculatorProvider);
-
-                            if (context.mounted) {
+                            if (success == true && context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(isTr ? 'Zekat ödemesi başarıyla kaydedildi!' : 'Zakat payment saved successfully!'),
@@ -199,57 +162,82 @@ class HistoryScreen extends ConsumerWidget {
                 separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final item = items[index];
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => HistoryDetailScreen(historyItem: item),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: appState.isDark ? AppTheme.surfaceDark : AppTheme.surfaceLight,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: appState.isDark ? Colors.white10 : Colors.transparent),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF3A712).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF3A712).withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Icon(Icons.check_circle_rounded, color: Color(0xFFF3A712), size: 20),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(item.period, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                            Text(
+                                              item.hijriDate != null 
+                                                  ? '${item.gregorian} / ${item.hijriDate}' 
+                                                  : item.gregorian, 
+                                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12)
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  child: const Icon(Icons.check_circle_rounded, color: Color(0xFFF3A712), size: 20),
                                 ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                const SizedBox(width: 8),
+                                Row(
                                   children: [
-                                    Text(item.period, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                                    Text(
-                                      item.hijriDate != null 
-                                          ? '${item.gregorian} / ${item.hijriDate}' 
-                                          : item.gregorian, 
-                                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12)
-                                    ),
+                                    Text('${_getCurrencySymbol(item.currency)}${formatCurrency(item.amount, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).primaryColor)),
+                                    const SizedBox(width: 4),
+                                    Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 22),
                                   ],
                                 ),
                               ],
                             ),
-                            Text('${_getCurrencySymbol(item.currency)}${formatCurrency(item.amount, appState.language)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).primaryColor)),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('${item.assetCount} ${isTr ? "Varlık Kalemi" : "Asset Items"}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                Text(DateFormat('dd/MM/yyyy').format(DateTime.parse(item.date)), style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                              ],
+                            )
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('${item.assetCount} ${isTr ? "Varlık Kalemi" : "Asset Items"}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                            Text(DateFormat('dd/MM/yyyy').format(DateTime.parse(item.date)), style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
-                          ],
-                        )
-                      ],
+                      ),
                     ),
                   );
                 },
